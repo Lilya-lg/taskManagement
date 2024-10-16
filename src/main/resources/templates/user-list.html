@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User List</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/tasks">Tasks</a></li>
+            <li><a href="/change-requests">Change Requests</a></li>
+            <li><a href="/users/new">Add User</a></li>
+            <li><a href="/users">User List</a></li>
+            <li><a href="/profile">Profile</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>User List</h1>
+        </header>
+
+        <!-- Table to display users -->
+        <table class="user-table">
+            <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Request Type</th>
+                <th>Role</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Iterate over the users list and display each user -->
+            <tr th:each="user : ${users}">
+                <td th:text="${user.firstName}">First Name</td>
+                <td th:text="${user.lastName}">Last Name</td>
+                <td th:text="${user.email}">Email</td>
+                <td th:text="${user.requestType}"></td>
+                <td th:text="${user.role}">Role</td>
+            </tr>
+
+            <!-- Message if no users are found -->
+            <tr th:if="${#lists.isEmpty(users)}">
+                <td colspan="4">No users found</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

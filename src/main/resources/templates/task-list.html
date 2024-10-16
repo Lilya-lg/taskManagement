@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Task List</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/tasks">Tasks</a></li>
+            <li><a href="/change-requests">Change Requests</a></li>
+            <li><a href="/profile">Profile</a></li>
+            <li><a href="/users">User List</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Task List</h1>
+        </header>
+
+        <!-- Button to create a new task -->
+        <a href="/tasks/new" class="btn">Create New Task</a>
+
+        <!-- Task table to display all tasks -->
+        <table class="task-table">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Assigned User</th>
+                <th>Requester</th>
+                <th>Request Type</th>
+                <th>File</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Iterate through the tasks using Thymeleaf -->
+            <tr th:each="task : ${tasks}">
+                <td th:text="${task.title}">Task Title</td>
+                <td th:text="${task.status}">Task Status</td>
+                <td th:text="${task.dueDate != null ? task.dueDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd-MM-yyyy')) : 'No due date'}">Due Date</td>
+
+                <td th:text="${task.assignedUser != null ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName : ' No assigned user '}">Assigned User</td>
+                <td th:text="${task.requester != null ? task.requester.firstName + ' ' + task.requester.lastName : ' No data '}">Requester</td> <!-- Display requester -->
+                <td th:text="${task.requestType}"></td>
+                <td>
+                    <!-- If the task has an associated file, display the download link -->
+                    <a th:if="${task.fileName != null}"
+                       th:href="@{/tasks/file/{fileName}(fileName=${task.fileName})}"
+                       th:text="${task.fileName}">Download</a>
+
+                    <!-- If there is no file associated, display 'No files' -->
+                    <span th:if="${task.fileName == null}">No files</span>
+                </td>
+                <td>
+                    <a th:href="@{/tasks/{id}(id=${task.id})}">View</a> |
+                    <a th:href="@{/tasks/edit/{id}(id=${task.id})}">Edit</a>
+                </td>
+            </tr>
+            <!-- Display a message if there are no tasks -->
+            <tr th:if="${tasks.size() == 0}">
+                <td colspan="5">No tasks found</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

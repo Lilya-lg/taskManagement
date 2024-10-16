@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Task Management</h2>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/tasks">Tasks</a></li>
+            <li><a href="/change-requests">Change Requests</a></li>
+            <li><a href="/users">Users</a></li>
+            <li><a href="/profile">Profile</a></li>
+        </ul>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+        <!-- Header with greeting -->
+        <header>
+            <h1>Welcome, <span th:text="${user}">User</span>!</h1>
+            <p>Your task summary at a glance:</p>
+        </header>
+
+        <!-- Task Summary Cards -->
+        <div class="dashboard-cards">
+            <!-- Total Tasks -->
+            <div class="card">
+                <h3>Total Tasks</h3>
+                <p th:text="${totalTasks}">0</p>
+            </div>
+
+            <!-- Tasks in Progress -->
+            <div class="card">
+                <h3>Tasks In Progress</h3>
+                <p th:text="${tasksInProgress}">0</p>
+            </div>
+
+            <!-- Completed Tasks -->
+            <div class="card">
+                <h3>Completed Tasks</h3>
+                <p th:text="${completedTasks}">0</p>
+            </div>
+
+            <!-- Overdue Tasks -->
+            <div class="card">
+                <h3>Overdue Tasks</h3>
+                <p th:text="${overdueTasks}">0</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

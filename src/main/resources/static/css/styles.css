@@ -1,0 +1,297 @@
+/* General styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f6f9;
+}
+
+/* Container for sidebar and main content */
+.container {
+    display: flex;
+}
+
+/* Sidebar styling */
+.sidebar {
+    width: 200px;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+.sidebar h2 {
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin: 20px 0;
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.sidebar ul li a:hover {
+    color: #3498db;
+}
+
+/* Main content styling */
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #ecf0f1;
+}
+
+header h1 {
+    color: #2c3e50;
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    flex-grow: 1;
+}
+
+header {
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 28px;
+    color: #2c3e50;
+}
+
+header p {
+    color: #7f8c8d;
+    font-size: 18px;
+}
+
+/* Dashboard cards container */
+.dashboard-cards {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+/* Individual card styling */
+.card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px;
+    width: calc(25% - 20px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.card h3 {
+    font-size: 20px;
+    color: #34495e;
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 36px;
+    color: #3498db;
+    margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .dashboard-cards {
+        flex-direction: column;
+    }
+
+    .card {
+        width: 100%;
+    }
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+}
+
+td {
+    background-color: #ecf0f1;
+}
+
+tr:nth-child(even) {
+    background-color: #eaf3fc;
+}
+
+/* Button styling */
+.btn {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+}
+
+/* Task and Change Request Table */
+.task-table, .change-request-table {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+}
+/* General form styling */
+.form-container {
+    width: 500px;
+    margin: 0 auto;
+    background-color: #f7f9fc;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling each form row */
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+/* Styling labels */
+
+.form-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-row label {
+    flex-basis: 30%;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Ensuring all input fields and textarea have the same width */
+.form-row input[type="text"],
+.form-row input[type="email"],
+.form-row select,
+.form-row input[type="date"],
+.form-row textarea {
+    flex-basis: 65%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%; /* Make all input elements 100% of their parent */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+}
+
+/* Button styling */
+.form-container button[type="submit"] {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.form-container button[type="submit"]:hover {
+    background-color: #2980b9;
+}
+
+/* Error message styling */
+.form-row span {
+    color: red;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+/* Specific styling for textarea to match the height of other fields */
+.form-row textarea {
+    height: 120px; /* Adjust height of textarea */
+}
+.details-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+    margin-top: 20px;
+}
+
+.details-card h2 {
+    font-size: 24px;
+    color: #34495e;
+    margin-bottom: 20px;
+}
+
+.details-card p {
+    font-size: 18px;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+.details-card p strong {
+    color: #2c3e50;
+}
+
+/* Action buttons */
+.action-buttons {
+    margin-top: 20px;
+}
+
+.action-buttons .btn {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.action-buttons .btn:hover {
+    background-color: #2980b9;
+}
+
+.action-buttons .btn-secondary {
+    background-color: #7f8c8d;
+    margin-left: 10px;
+}
+
+.action-buttons .btn-secondary:hover {
+    background-color: #95a5a6;
+}

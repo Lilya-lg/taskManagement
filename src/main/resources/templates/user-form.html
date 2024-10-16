@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add User</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/tasks">Tasks</a></li>
+            <li><a href="/change-requests">Change Requests</a></li>
+            <li><a href="/users/new">Add User</a></li>
+            <li><a href="/users">User List</a></li>
+            <li><a href="/profile">Profile</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Add New User</h1>
+        </header>
+
+        <!-- User form container -->
+        <div class="form-container">
+            <form th:action="@{/users/new}" method="post" th:object="${user}">
+                <!-- First Name -->
+                <div class="form-row">
+                    <label for="firstName">First Name:</label>
+                    <input type="text" id="firstName" th:field="*{firstName}" />
+                    <span th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}">Error</span>
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-row">
+                    <label for="lastName">Last Name:</label>
+                    <input type="text" id="lastName" th:field="*{lastName}" />
+                    <span th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}">Error</span>
+                </div>
+
+                <!-- Email -->
+                <div class="form-row">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" th:field="*{email}" />
+                    <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</span>
+                </div>
+                <div>
+                    <label for="requestType">Request Type:</label>
+                    <select id="requestType" th:field="*{requestType}">
+                        <option value="INFRA">INFRA</option>
+                        <option value="PROD_APPS">Prod Apps</option>
+                        <option value="BUSINESS_APPS">Business Apps</option>
+                    </select>
+                </div>
+                <!-- Role -->
+                <div class="form-row">
+                    <label for="role">Role:</label>
+                    <select id="role" th:field="*{role}">
+                        <option value="USER">User</option>
+                        <option value="IT_TEAM">IT Team</option>
+                        <option value="IT_MANAGER">IT Manager</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                    <span th:if="${#fields.hasErrors('role')}" th:errors="*{role}">Error</span>
+                </div>
+
+                <!-- Submit button -->
+                <div class="form-row">
+                    <button type="submit">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

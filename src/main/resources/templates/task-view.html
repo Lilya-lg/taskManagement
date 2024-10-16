@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Details</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Task Management</h2>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/tasks">Tasks</a></li>
+            <li><a href="/change-requests">Change Requests</a></li>
+            <li><a href="/users">Users</a></li>
+            <li><a href="/profile">Profile</a></li>
+        </ul>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+        <header>
+            <h1>Task Details</h1>
+            <p>Here you can see the details of the selected task.</p>
+        </header>
+
+        <!-- Task details card -->
+        <div class="details-card">
+            <h2 th:text="${task.title}">Task Title</h2>
+            <p><strong>Description:</strong> <span th:text="${task.description}">Task Description</span></p>
+            <p><strong>Status:</strong> <span th:text="${task.status}">Task Status</span></p>
+            <p><strong>Due Date:</strong> <span th:text="${task.dueDate}">Due Date</span></p>
+            <p><strong>Request Type:</strong> <span th:text="${task.requestType}"></span></p>
+            <!-- Check if the assigned user exists -->
+            <p><strong>Assigned User:</strong>
+                <span th:text="${task.assignedUser != null ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName : 'No User Assigned'}">
+                        Assigned User
+                    </span>
+            </p>
+            <p>
+                <strong>File:</strong>
+                <a th:if="${task.fileName != null}" th:href="@{/tasks/file/{fileName}(fileName=${task.fileName})}"
+                   th:text="${task.fileName}">Download</a>
+            </p>
+            <div class="action-buttons">
+                <a th:href="@{/tasks/edit/{id}(id=${task.id})}" class="btn">Edit Task</a>
+                <a th:href="@{/tasks}" class="btn btn-secondary">Back to Tasks</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

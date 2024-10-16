@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Change Request List</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/tasks">Tasks</a></li>
+            <li><a href="/change-requests">Change Requests</a></li>
+            <li><a href="/profile">Profile</a></li>
+            <li><a href="/users">User List</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Change Request List</h1>
+        </header>
+
+        <table class="change-request-table">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Related Task</th>
+                <th>Requested By</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="changeRequest : ${changeRequests}">
+                <td th:text="${changeRequest.title}">Change Request Title</td>
+                <td th:text="${changeRequest.status}">Change Request Status</td>
+                <td th:text="${changeRequest.task.title}">Task Title</td>
+                <td th:text="${changeRequest.task.assignedUser.firstName + ' ' + changeRequest.task.assignedUser.lastName}">Requested By</td>
+                <td>
+                    <a th:href="@{/change-requests/{id}(id=${changeRequest.id})}">View</a> |
+                    <a th:href="@{/change-requests/edit/{id}(id=${changeRequest.id})}">Edit</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

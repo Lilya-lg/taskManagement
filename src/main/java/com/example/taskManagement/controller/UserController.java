@@ -1,0 +1,51 @@
+package com.example.taskManagement.controller;
+
+
+import com.example.taskManagement.entity.User;
+import com.example.taskManagement.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import jakarta.validation.Valid;
+
+import java.util.List;
+
+@Controller
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+
+    @GetMapping("/users/new")
+    public String showUserForm(Model model) {
+        model.addAttribute("user", new User());
+        return "user-form";
+    }
+
+    // POST request to handle form submission and save user
+    @PostMapping("/users/new")
+    public String createUser(@Valid @ModelAttribute("user") User user, BindingResult result) {
+        if (result.hasErrors()) {
+
+            return "user-form";
+        }
+
+        // Save the new user
+        userService.saveUser(user);
+        return "redirect:/dashboard";
+    }
+
+    // GET request to display all users
+    @GetMapping("/users")
+    public String listUsers(Model model) {
+        List<User> users = userService.getAllUsers();
+        model.addAttribute("users", users);
+        return "user-list";
+    }
+}
