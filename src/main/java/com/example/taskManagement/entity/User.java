@@ -8,28 +8,32 @@ import lombok.Data;
 @Entity
 @Table(name = "users")  // Mapping to the 'users' table
 @Data
-    public class User {
+public class User {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        @NotNull(message = "First name cannot be null")
-        private String firstName;
+    @NotNull(message = "First name cannot be null")
+    private String firstName;
 
-        @NotNull(message = "Last name cannot be null")
-        private String lastName;
+    @NotNull(message = "Last name cannot be null")
+    private String lastName;
 
-        @Email(message = "Email should be valid")
-        private String email;
+    @Email(message = "Email should be valid")
+    private String email;
 
-        @Enumerated(EnumType.STRING)
-        @NotNull(message = "Role cannot be null")
-        private Role role;
+    @NotNull(message = "Role cannot be null")
+    private String password;
 
-        public enum Role {
-            USER, IT_TEAM, IT_MANAGER, ADMIN
-        }
-        @Enumerated(EnumType.STRING)
-        private RequestType requestType;
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Role cannot be null")
+    private Role role;
+
+    public enum Role {
+        USER, IT_TEAM, IT_MANAGER, ADMIN, IT_DIRECTOR
     }
+
+    @Enumerated(EnumType.STRING)
+    private RequestType requestType;
+}

@@ -1,22 +1,38 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Details</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="container">
+    <div class="logout-form" sec:authorize="isAuthenticated()">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
     <!-- Sidebar -->
     <div class="sidebar">
         <h2>Task Management</h2>
         <ul>
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/tasks">Tasks</a></li>
-            <li><a href="/change-requests">Change Requests</a></li>
-            <li><a href="/users">Users</a></li>
-            <li><a href="/profile">Profile</a></li>
+            <li><a th:href="@{/dashboard}">Dashboard</a></li>
+            <!-- Show to users with USER role -->
+            <li sec:authorize="hasRole('USER')">
+                <a th:href="@{/tasks}">Tasks</a>
+            </li>
+            <li sec:authorize="hasRole('IT_TEAM')">
+                <a th:href="@{/tasks/team}">Tasks</a>
+            </li>
+
+            <!-- Show to users with IT_MANAGER role -->
+            <li sec:authorize="hasRole('IT_MANAGER')">
+                <a th:href="@{/tasks/manager}">Tasks</a>
+            </li>
+            <li><a th:href="@{/change-requests}">Change Requests</a></li>
+            <li><a th:href="@{/users}">Users</a></li>
+            <li><a th:href="@{/profile}">Profile</a></li>
         </ul>
     </div>
 
@@ -47,7 +63,10 @@
             </p>
             <div class="action-buttons">
                 <a th:href="@{/tasks/edit/{id}(id=${task.id})}" class="btn">Edit Task</a>
-                <a th:href="@{/tasks}" class="btn btn-secondary">Back to Tasks</a>
+                <a th:href="@{/tasks}" class="btn btn-secondary" sec:authorize="hasRole('USER')">Back to Tasks</a>
+                <a th:href="@{/tasks/manager}" class="btn btn-secondary" sec:authorize="hasRole('IT_MANAGER')">Back to Tasks</a>
+                <a th:href="@{/tasks/team}" class="btn btn-secondary" sec:authorize="hasRole('IT_TEAM')">Back to Tasks</a>
+                <a th:href="@{/tasks}" class="btn btn-secondary" sec:authorize="hasRole('IT_DIRECTOR')">Back to Tasks</a>
             </div>
         </div>
     </div>

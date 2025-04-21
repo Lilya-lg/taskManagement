@@ -1,24 +1,41 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Task</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="container">
+    <div class="logout-form" sec:authorize="isAuthenticated()">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
     <!-- Sidebar -->
     <div class="sidebar">
         <h2>Task Management</h2>
         <ul>
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/tasks">Tasks</a></li>
-            <li><a href="/change-requests">Change Requests</a></li>
-            <li><a href="/users">Users</a></li>
-            <li><a href="/profile">Profile</a></li>
+            <li><a th:href="@{/dashboard}">Dashboard</a></li>
+            <!-- Show to users with USER role -->
+            <li sec:authorize="hasRole('USER')">
+                <a th:href="@{/tasks}">Tasks</a>
+            </li>
+            <li sec:authorize="hasRole('IT_TEAM')">
+                <a th:href="@{/tasks/team}">Tasks</a>
+            </li>
+
+            <!-- Show to users with IT_MANAGER role -->
+            <li sec:authorize="hasRole('IT_MANAGER')">
+                <a th:href="@{/tasks/manager}">Tasks</a>
+            </li>
+            <li><a th:href="@{/change-requests}">Change Requests</a></li>
+            <li><a th:href="@{/users}">Users</a></li>
+            <li><a th:href="@{/profile}">Profile</a></li>
         </ul>
     </div>
-
     <!-- Main content -->
     <div class="main-content">
         <header>
@@ -32,36 +49,79 @@
 
                 <!-- Task Title -->
                 <div class="form-row">
-                    <label for="title">Title:</label>
-                    <input type="text" id="title" th:field="*{title}" placeholder="Task Title" />
+                    <label for="titleEditable">Title:</label>
+
+                    <!-- Editable if status is TODO or user is not a USER -->
+                    <th:block th:if="${!(#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0 OR task.status == 'TODO')}">
+                        <input type="text" id="titleEditable" th:field="*{title}" placeholder="Task Title" />
+                    </th:block>
+
+                    <!-- Read-only if status is not TODO and user is a USER -->
+                    <th:block th:if="${#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0 and task.status != 'TODO'}">
+                        <input type="text" id="titleReadonly" th:field="*{title}" placeholder="Task Title" readonly />
+                    </th:block>
+
                     <span th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Error</span>
                 </div>
 
                 <!-- Task Description -->
                 <div class="form-row">
-                    <label for="description">Description:</label>
-                    <textarea id="description" th:field="*{description}" rows="4" placeholder="Task Description"></textarea>
+                    <label for="descriptionEditable">Description:</label>
+
+                    <!-- Editable if status is TODO or user is not a USER -->
+                    <th:block th:if="${!(#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0 OR task.status == 'TODO')}">
+                        <textarea id="descriptionEditable" th:field="*{description}" rows="4" placeholder="Task Description"></textarea>
+                    </th:block>
+
+                    <!-- Read-only if status is not TODO and user is a USER -->
+                    <th:block th:if="${#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0 and task.status != 'TODO'}">
+                        <textarea id="descriptionReadonly" th:field="*{description}" rows="4" placeholder="Task Description" readonly></textarea>
+                    </th:block>
+
                     <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Error</span>
                 </div>
 
                 <!-- Task Status -->
                 <div class="form-row">
-                    <label for="status">Status:</label>
-                    <select id="status" th:field="*{status}">
-                        <option value="TODO" th:selected="${task.status == 'TODO'}">To Do</option>
-                        <option value="IN_PROGRESS" th:selected="${task.status == 'IN_PROGRESS'}">In Progress</option>
-                        <option value="COMPLETED" th:selected="${task.status == 'COMPLETED'}">Completed</option>
-                    </select>
+                    <label for="statusEditable">Status:</label>
+
+                    <!-- Editable for Non-USER Roles -->
+                    <th:block sec:authorize="!hasRole('USER')">
+                        <select id="statusEditable" th:field="*{status}">
+                            <option value="TODO">TODO</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                        </select>
+                    </th:block>
+
+                    <!-- Read-only for USER Role -->
+                    <th:block sec:authorize="hasRole('USER')">
+                        <select id="statusReadonly" th:field="*{status}" disabled>
+                            <option value="TODO">TODO</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                        </select>
+                    </th:block>
+
                     <span th:if="${#fields.hasErrors('status')}" th:errors="*{status}">Error</span>
                 </div>
 
-                <!-- Task Due Date (ensure proper formatting) -->
                 <div class="form-row">
-                    <label for="dueDate">Due Date:</label>
-                    <!-- Use th:field to bind the dueDate -->
-                    <input type="date" id="dueDate" th:field="*{dueDate}" />
+                    <label for="dueDateEditable">Due Date:</label>
+
+                    <!-- Editable for Non-USER Roles -->
+                    <th:block sec:authorize="!hasRole('USER')">
+                        <input type="date" id="dueDateEditable" th:field="*{dueDate}" />
+                    </th:block>
+
+                    <!-- Read-only for USER Role -->
+                    <th:block sec:authorize="hasRole('USER')">
+                        <input type="date" id="dueDateReadonly" th:field="*{dueDate}" readonly />
+                    </th:block>
+
                     <span th:if="${#fields.hasErrors('dueDate')}" th:errors="*{dueDate}">Error</span>
                 </div>
+
                 <div class="form-row">
                     <label for="requestType">Request Type:</label>
                     <select id="requestType" th:field="*{requestType}">
@@ -72,16 +132,32 @@
                 </div>
                 <!-- Assigned User (ensure selected user is pre-populated) -->
                 <div class="form-row">
-                    <label for="assignedUser">Assigned User:</label>
-                    <select id="assignedUser" th:field="*{assignedUser}">
-                        <!-- Loop through all users and create options -->
-                        <option th:each="user : ${users}"
-                                th:value="${user.id}"
-                                th:text="${user.firstName + ' ' + user.lastName}"
-                                th:selected="${assignedUser != null and user.id == assignedUser.id}">
-                            User
-                        </option>
-                    </select>
+                    <label for="assignedUserEditable">Assigned User:</label>
+
+                    <!-- Editable for Non-USER Roles -->
+                    <th:block sec:authorize="!hasRole('USER')">
+                        <select id="assignedUserEditable" th:field="*{assignedUser}">
+                            <option th:each="user : ${users}"
+                                    th:value="${user.id}"
+                                    th:text="${user.firstName + ' ' + user.lastName}"
+                                    th:selected="${assignedUser != null and user.id == assignedUser.id}">
+                                User
+                            </option>
+                        </select>
+                    </th:block>
+
+                    <!-- Read-only for USER Role -->
+                    <th:block sec:authorize="hasRole('USER')">
+                        <select id="assignedUserReadonly" th:field="*{assignedUser}" disabled>
+                            <option th:each="user : ${users}"
+                                    th:value="${user.id}"
+                                    th:text="${user.firstName + ' ' + user.lastName}"
+                                    th:selected="${assignedUser != null and user.id == assignedUser.id}">
+                                User
+                            </option>
+                        </select>
+                    </th:block>
+
                     <span th:if="${#fields.hasErrors('assignedUser')}" th:errors="*{assignedUser}">Error</span>
                 </div>
                 <div class="form-row">
@@ -89,8 +165,19 @@
                     <input type="file" id="file" name="file" />
                 </div>
                 <!-- Submit button -->
-                <div class="form-row">
-                    <button type="submit">Save Changes</button>
+                <div class="action-buttons">
+                    <button type="submit" class="btn">Save Changes</button>
+                    <a th:href="@{/tasks}" class="btn btn-secondary" sec:authorize="hasRole('USER')">Back to Tasks</a>
+                    <a th:href="@{/tasks/manager}" class="btn btn-secondary" sec:authorize="hasRole('IT_MANAGER')">Back to Tasks</a>
+                    <a th:href="@{/tasks/team}" class="btn btn-secondary" sec:authorize="hasRole('IT_TEAM')">Back to Tasks</a>
+                    <a th:href="@{/tasks}" class="btn btn-secondary" sec:authorize="hasRole('IT_DIRECTOR')">Back to Tasks</a>
+                </div>
+                <div class="form-row" th:if="${task.needApproval} and ${task.status != 'COMPLETED'}">
+                    <button type="submit" class="btn btn-primary"
+                            th:action="@{/tasks/send-for-approval/{id}(id=${task.id})}"
+                            sec:authorize="hasRole('IT_TEAM')">
+                        Send for Approval
+                    </button>
                 </div>
             </form>
         </div>

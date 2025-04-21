@@ -1,20 +1,37 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 <head>
     <title>Add User</title>
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="container">
+    <div class="logout-form" sec:authorize="isAuthenticated()">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
     <div class="sidebar">
-        <h2>Menu</h2>
+        <h2>Task Management</h2>
         <ul>
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/tasks">Tasks</a></li>
-            <li><a href="/change-requests">Change Requests</a></li>
-            <li><a href="/users/new">Add User</a></li>
-            <li><a href="/users">User List</a></li>
-            <li><a href="/profile">Profile</a></li>
+            <li><a th:href="@{/dashboard}">Dashboard</a></li>
+            <!-- Show to users with USER role -->
+            <li sec:authorize="hasRole('USER')">
+                <a th:href="@{/tasks}">Tasks</a>
+            </li>
+            <li sec:authorize="hasRole('IT_TEAM')">
+                <a th:href="@{/tasks/team}">Tasks</a>
+            </li>
+
+            <!-- Show to users with IT_MANAGER role -->
+            <li sec:authorize="hasRole('IT_MANAGER')">
+                <a th:href="@{/tasks/manager}">Tasks</a>
+            </li>
+            <li><a th:href="@{/change-requests}">Change Requests</a></li>
+            <li><a th:href="@{/users}">Users</a></li>
+            <li><a th:href="@{/profile}">Profile</a></li>
         </ul>
     </div>
 
@@ -29,24 +46,33 @@
                 <!-- First Name -->
                 <div class="form-row">
                     <label for="firstName">First Name:</label>
-                    <input type="text" id="firstName" th:field="*{firstName}" />
+                    <input type="text" id="firstName" th:field="*{firstName}" required />
                     <span th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}">Error</span>
                 </div>
 
                 <!-- Last Name -->
                 <div class="form-row">
                     <label for="lastName">Last Name:</label>
-                    <input type="text" id="lastName" th:field="*{lastName}" />
+                    <input type="text" id="lastName" th:field="*{lastName}" required />
                     <span th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}">Error</span>
                 </div>
 
                 <!-- Email -->
                 <div class="form-row">
                     <label for="email">Email:</label>
-                    <input type="email" id="email" th:field="*{email}" />
+                    <input type="email" id="email" th:field="*{email}" required />
                     <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</span>
                 </div>
-                <div>
+
+                <!-- Password -->
+                <div class="form-row">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" th:field="*{password}" required />
+                    <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Error</span>
+                </div>
+
+                <!-- Request Type -->
+                <div class="form-row">
                     <label for="requestType">Request Type:</label>
                     <select id="requestType" th:field="*{requestType}">
                         <option value="INFRA">INFRA</option>
@@ -54,6 +80,7 @@
                         <option value="BUSINESS_APPS">Business Apps</option>
                     </select>
                 </div>
+
                 <!-- Role -->
                 <div class="form-row">
                     <label for="role">Role:</label>
@@ -61,6 +88,7 @@
                         <option value="USER">User</option>
                         <option value="IT_TEAM">IT Team</option>
                         <option value="IT_MANAGER">IT Manager</option>
+                        <option value="IT_DIRECTOR">IT Director</option>
                         <option value="ADMIN">Admin</option>
                     </select>
                     <span th:if="${#fields.hasErrors('role')}" th:errors="*{role}">Error</span>

@@ -1,19 +1,35 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <title>Task List</title>
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="container">
+    <div class="logout-form" sec:authorize="isAuthenticated()">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
     <div class="sidebar">
-        <h2>Menu</h2>
+        <h2>Task Management</h2>
         <ul>
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/tasks">Tasks</a></li>
-            <li><a href="/change-requests">Change Requests</a></li>
-            <li><a href="/profile">Profile</a></li>
-            <li><a href="/users">User List</a></li>
+            <li><a th:href="@{/dashboard}">Dashboard</a></li>
+            <!-- Show to users with USER role -->
+            <li sec:authorize="hasRole('USER')">
+                <a th:href="@{/tasks}">Tasks</a>
+            </li>
+            <li sec:authorize="hasRole('IT_TEAM')">
+                <a th:href="@{/tasks/team}">Tasks</a>
+            </li>
+
+            <!-- Show to users with IT_MANAGER role -->
+            <li sec:authorize="hasRole('IT_MANAGER')">
+                <a th:href="@{/tasks/manager}">Tasks</a>
+            </li>
+            <li><a th:href="@{/change-requests}">Change Requests</a></li>
+            <li><a th:href="@{/users}">Users</a></li>
+            <li><a th:href="@{/profile}">Profile</a></li>
         </ul>
     </div>
 
@@ -21,6 +37,35 @@
         <header>
             <h1>Task List</h1>
         </header>
+
+        <!-- Filters Section -->
+        <form method="get" th:action="@{/tasks}">
+            <div class="filters">
+                <label for="status">Status:</label>
+                <select id="status" name="status">
+                    <option value="">All</option>
+                    <option value="TODO" th:selected="${filterStatus == 'TODO'}">Open</option>
+                    <option value="IN_PROGRESS" th:selected="${filterStatus == 'IN_PROGRESS'}">In Progress</option>
+                    <option value="CLOSED" th:selected="${filterStatus == 'CLOSED'}">Closed</option>
+                </select>
+
+                <label for="requestType">Request Type:</label>
+                <select id="requestType" name="requestType">
+                    <option value="">All</option>
+                    <option value="INFRA" th:selected="${filterRequestType == 'INFRA'}">Infra</option>
+                    <option value="PROD_APPS" th:selected="${filterRequestType == 'PROD_APPS'}">Prod Apps</option>
+                    <option value="BUSINESS_APPS" th:selected="${filterRequestType == 'BUSINESS_APPS'}">Business Apps</option>
+                </select>
+
+                <label for="assignedUser">Assigned User:</label>
+                <select id="assignedUser" name="assignedUser">
+                    <option value="">All</option>
+                    <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.firstName + ' ' + user.lastName}" th:selected="${filterAssignedUser == user.id}"></option>
+                </select>
+
+                <button type="submit" class="btn">Filter</button>
+            </div>
+        </form>
 
         <!-- Button to create a new task -->
         <a href="/tasks/new" class="btn">Create New Task</a>
@@ -35,6 +80,7 @@
                 <th>Assigned User</th>
                 <th>Requester</th>
                 <th>Request Type</th>
+                <th>Priority</th>
                 <th>File</th>
                 <th>Actions</th>
             </tr>
@@ -47,7 +93,8 @@
                 <td th:text="${task.dueDate != null ? task.dueDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd-MM-yyyy')) : 'No due date'}">Due Date</td>
 
                 <td th:text="${task.assignedUser != null ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName : ' No assigned user '}">Assigned User</td>
-                <td th:text="${task.requester != null ? task.requester.firstName + ' ' + task.requester.lastName : ' No data '}">Requester</td> <!-- Display requester -->
+                <td th:text="${task.requester != null ? task.requester.firstName + ' ' + task.requester.lastName : ' No data '}">Requester</td>
+                <td th:text="${task.priority != null ? task.priority : ' No data '}">Priority</td>
                 <td th:text="${task.requestType}"></td>
                 <td>
                     <!-- If the task has an associated file, display the download link -->
@@ -61,11 +108,12 @@
                 <td>
                     <a th:href="@{/tasks/{id}(id=${task.id})}">View</a> |
                     <a th:href="@{/tasks/edit/{id}(id=${task.id})}">Edit</a>
+                    <a th:href="@{/tasks/delete/{id}(id=${task.id})}" onclick="return confirm('Are you sure you want to delete this task?');">Delete</a>
                 </td>
             </tr>
             <!-- Display a message if there are no tasks -->
             <tr th:if="${tasks.size() == 0}">
-                <td colspan="5">No tasks found</td>
+                <td colspan="8">No tasks found</td>
             </tr>
             </tbody>
         </table>

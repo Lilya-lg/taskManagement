@@ -1,5 +1,6 @@
 package com.example.taskManagement.service;
 
+import com.example.taskManagement.entity.RequestType;
 import com.example.taskManagement.entity.User;
 import com.example.taskManagement.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,14 +13,21 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
     public void saveUser(User user) {
         userRepository.save(user);
+    }
+
+    public List<User> getFilteredUsers(User.Role role, RequestType requestType) {
+        return userRepository.findUsersByRoleAndRequestType(role, requestType);
     }
 }
 

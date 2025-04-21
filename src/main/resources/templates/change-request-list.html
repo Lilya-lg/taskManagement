@@ -1,19 +1,28 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 <head>
     <title>Change Request List</title>
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" th:href="/TaskTrek/css/styles.css" />
 </head>
 <body>
 <div class="container">
     <div class="sidebar">
         <h2>Menu</h2>
         <ul>
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/tasks">Tasks</a></li>
-            <li><a href="/change-requests">Change Requests</a></li>
-            <li><a href="/profile">Profile</a></li>
-            <li><a href="/users">User List</a></li>
+            <li><a href="/TaskTrek/dashboard">Dashboard</a></li>
+            <li sec:authorize="hasRole('USER')">
+                <a th:href="@{/TaskTrek/tasks}">Tasks</a>
+            </li>
+
+            <!-- Show to users with IT_MANAGER role -->
+            <li sec:authorize="hasRole('IT_MANAGER')">
+                <a th:href="@{/TaskTrek/tasks/manager}">Tasks</a>
+            </li>
+            <li><a href="/TaskTrek/change-requests">Change Requests</a></li>
+            <li><a href="/TaskTrek/profile">Profile</a></li>
+            <li><a href="/TaskTrek/users">User List</a></li>
         </ul>
     </div>
 

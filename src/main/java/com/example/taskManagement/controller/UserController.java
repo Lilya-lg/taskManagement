@@ -10,6 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import jakarta.validation.Valid;
 
@@ -22,6 +23,9 @@ public class UserController {
     private UserService userService;
 
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping("/users/new")
     public String showUserForm(Model model) {
         model.addAttribute("user", new User());
@@ -32,11 +36,10 @@ public class UserController {
     @PostMapping("/users/new")
     public String createUser(@Valid @ModelAttribute("user") User user, BindingResult result) {
         if (result.hasErrors()) {
-
             return "user-form";
         }
-
         // Save the new user
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userService.saveUser(user);
         return "redirect:/dashboard";
     }

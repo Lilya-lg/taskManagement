@@ -1,19 +1,35 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
   <title>Create Task</title>
-  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="container">
+  <div class="logout-form" sec:authorize="isAuthenticated()">
+    <form th:action="@{/logout}" method="post">
+      <button type="submit">Logout</button>
+    </form>
+  </div>
   <div class="sidebar">
-    <h2>Menu</h2>
+    <h2>Task Management</h2>
     <ul>
-      <li><a href="/dashboard">Dashboard</a></li>
-      <li><a href="/tasks">Tasks</a></li>
-      <li><a href="/change-requests">Change Requests</a></li>
-      <li><a href="/users">Users</a></li>
-      <li><a href="/profile">Profile</a></li>
+      <li><a th:href="@{/dashboard}">Dashboard</a></li>
+      <!-- Show to users with USER role -->
+      <li sec:authorize="hasRole('USER')">
+        <a th:href="@{/tasks}">Tasks</a>
+      </li>
+      <li sec:authorize="hasRole('IT_TEAM')">
+        <a th:href="@{/tasks/team}">Tasks</a>
+      </li>
+
+      <!-- Show to users with IT_MANAGER role -->
+      <li sec:authorize="hasRole('IT_MANAGER')">
+        <a th:href="@{/tasks/manager}">Tasks</a>
+      </li>
+      <li><a th:href="@{/change-requests}">Change Requests</a></li>
+      <li><a th:href="@{/users}">Users</a></li>
+      <li><a th:href="@{/profile}">Profile</a></li>
     </ul>
   </div>
 
@@ -24,7 +40,7 @@
 
     <!-- Task form container -->
     <div class="form-container">
-      <form th:action="@{/tasks/new}" method="post" th:object="${task}">
+      <form th:action="@{/tasks/new}" method="post" th:object="${task}" enctype="multipart/form-data">
         <!-- Task Title -->
         <div class="form-row">
           <label for="title">Title:</label>
@@ -42,18 +58,26 @@
         <!-- Task Status -->
         <div class="form-row">
           <label for="status">Status:</label>
-          <select id="status" th:field="*{status}">
+
+          <!-- Dropdown for Status -->
+          <select id="status" th:field="*{status}"
+                  th:disabled="${#authentication.principal.authorities.?[authority == 'ROLE_USER'].size() > 0}">
             <option value="TODO">TODO</option>
             <option value="IN_PROGRESS">In Progress</option>
             <option value="COMPLETED">Completed</option>
           </select>
+
+          <!-- Hidden field to ensure status is submitted -->
+          <input type="hidden" th:value="${status}" th:field="*{status}" />
+
           <span th:if="${#fields.hasErrors('status')}" th:errors="*{status}">Error</span>
         </div>
 
         <!-- Task Due Date -->
-        <div class="form-row">
+        <div class="form-row" sec:authorize="!hasRole('USER')">
           <label for="dueDate">Due Date:</label>
-          <input type="date" id="dueDate" th:field="*{dueDate}" />
+          <input type="date" id="dueDate" th:field="*{dueDate}"
+                 th:value="${#dates.format(dueDate, 'yyyy-MM-dd')}" />
           <span th:if="${#fields.hasErrors('dueDate')}" th:errors="*{dueDate}">Error</span>
         </div>
         <div class="form-row">
@@ -64,8 +88,18 @@
             <option value="BUSINESS_APPS">Business Apps</option>
           </select>
         </div>
-        <!-- Assigned User -->
+
         <div class="form-row">
+          <label for="priority">Priority:</label>
+          <select id="priority" th:field="*{priority}">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+
+        <!-- Assigned User -->
+        <div class="form-row" sec:authorize="hasAnyRole('IT_TEAM', 'IT_MANAGER', 'IT_DIRECTOR', 'ADMIN')">
           <label for="assignedUser">Assigned User:</label>
           <select id="assignedUser" th:field="*{assignedUser.id}">
             <!-- Default option for no user assigned -->
@@ -78,16 +112,22 @@
           <span th:if="${#fields.hasErrors('assignedUser')}" th:errors="*{assignedUser}">Error</span>
         </div>
 
+
+
         <!-- Requester (Read-Only) -->
         <div class="form-row">
           <label for="requester">Requester:</label>
           <input type="text" id="requester"
                  th:field="*{requester.firstName}"
-                 th:value="${requester != null ? requester.firstName : ''}"
+                 th:readonly="true"
                  placeholder="Requester First Name" />
           <span th:if="${#fields.hasErrors('requester')}" th:errors="*{requester}">Error</span>
         </div>
 
+        <div class="form-row">
+          <label for="file">Upload File:</label>
+          <input type="file" id="file" name="file" />
+        </div>
 
         <!-- Submit button -->
         <div class="form-row">

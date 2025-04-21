@@ -295,3 +295,258 @@ tr:nth-child(even) {
 .action-buttons .btn-secondary:hover {
     background-color: #95a5a6;
 }
+.form-row input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s ease;
+}
+
+.form-row input[type="file"]:hover {
+    background-color: #e9e9e9;
+}
+
+.form-row input[type="file"]::-webkit-file-upload-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s ease;
+}
+
+.form-row input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #0056b3;
+}
+/* Styles specific to the login form */
+.login-container {
+    width: 400px;
+    margin: 100px auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.login-container h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.login-container .form-group {
+    margin-bottom: 15px;
+}
+
+.login-container label {
+    font-weight: bold;
+    color: #2c3e50;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.login-container input[type="text"], .login-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.login-container .btn-primary {
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.login-container .btn-primary:hover {
+    background-color: #2980b9;
+}
+.logout-form {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+.logout-form button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+}
+.logout-form button:hover {
+            background-color: #0056b3;
+ }
+/* Toggle Switch Styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px; /* Rounded background */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%; /* Rounded knob */
+}
+
+input:checked + .slider {
+    background-color: #007bff; /* Active state background */
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px); /* Move the knob */
+}
+.switch input {
+    border: 1px solid red; /* Debugging only */
+}
+.form-checkbox {
+    width: 15px; /* Increase width */
+    height: 15px; /* Increase height */
+    transform: scale(1.5); /* Additional scaling */
+    cursor: pointer; /* Pointer cursor for better user experience */
+}
+.profile-info {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.profile-info span {
+    font-weight: bold;
+}
+
+.profile-info .btn {
+    font-size: 12px;
+    padding: 5px 10px;
+}
+.profile-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-content {
+    margin-top: 20px;
+}
+/* Profile Header */
+.profile-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Profile Content */
+.profile-content {
+    margin: 20px auto;
+    max-width: 600px;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-section {
+    margin-bottom: 20px;
+}
+
+/* Form Styling */
+.password-form .form-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.password-form .form-row label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.password-form .form-row input {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.btn {
+    padding: 10px 15px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+.add-user-container {
+    width: 100%;         /* Ensure it takes full width of its parent */
+      display: block;      /* Display as a block element */
+      text-align: center;  /* Center the content inside */
+      margin-top: 20px;    /* Add desired space above the button */
+      clear: both;
+}
+
+/* Style the button itself */
+.add-user-container button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.add-user-container button:hover {
+    background-color: #eee;
+}

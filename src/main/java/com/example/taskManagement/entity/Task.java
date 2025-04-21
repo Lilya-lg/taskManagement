@@ -1,12 +1,18 @@
 package com.example.taskManagement.entity;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 @Entity
@@ -27,16 +33,33 @@ public class Task {
     @Column(nullable = false, columnDefinition = "TEXT")  // To allow longer descriptions
     private String description;
 
+    @Column(name = "history", columnDefinition = "TEXT") // Store JSON as text
+    private String history; // JSON-formatted history
+
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Status cannot be null")
     @Column(nullable = false)
     private Status status;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Priority priority;
+
+    @Column(name = "needApproval")
+    private Boolean needApproval;
+
+    @Column(name = "approved")
+    private Boolean approved;
+
     public enum Status {
         TODO, IN_PROGRESS, COMPLETED
     }
 
-    @NotNull
+    public enum Priority {
+        Low, High, Medium
+    }
+
+
     @Column(name = "due_date")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate dueDate;
@@ -58,4 +81,20 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     private RequestType requestType;
+
+
+    public void addHistory(String text) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode historyNode = history != null ? objectMapper.readTree(history) : objectMapper.createArrayNode();
+
+            JsonNode newEntry = objectMapper.createObjectNode().put("date", LocalDateTime.now(ZoneId.systemDefault()).toString()).put("text", text);
+
+            ((com.fasterxml.jackson.databind.node.ArrayNode) historyNode).add(newEntry);
+            this.history = objectMapper.writeValueAsString(historyNode);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
