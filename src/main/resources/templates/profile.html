@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Task Management</h2>
+        <ul>
+            <li><a th:href="@{/dashboard}">Dashboard</a></li>
+            <!-- Show to users with USER role -->
+            <li sec:authorize="hasRole('USER')">
+                <a th:href="@{/tasks}">Tasks</a>
+            </li>
+            <li sec:authorize="hasRole('IT_TEAM')">
+                <a th:href="@{/tasks/team}">Tasks</a>
+            </li>
+
+            <!-- Show to users with IT_MANAGER role -->
+            <li sec:authorize="hasRole('IT_MANAGER')">
+                <a th:href="@{/tasks/manager}">Tasks</a>
+            </li>
+            <li><a th:href="@{/change-requests}">Change Requests</a></li>
+            <li><a th:href="@{/users}">Users</a></li>
+            <li><a th:href="@{/profile}">Profile</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Profile Info Header -->
+        <header class="profile-header">
+            <h1>Profile Information</h1>
+        </header>
+
+        <div class="profile-content">
+            <!-- Display User Information -->
+            <div class="profile-section">
+                <h2>Personal Information</h2>
+                <p><strong>Name:</strong> <span th:text="${user.firstName}"></span> <span th:text="${user.lastName}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${#authentication.principal.username}"></span></p>
+                <p><strong>Role:</strong> <span th:text="${#authentication.principal.authorities[0].authority}"></span></p>
+            </div>
+
+            <!-- Password Change Section -->
+            <div class="profile-section">
+                <h2>Change Password</h2>
+                <form th:action="@{/profile/change-password}" method="post" class="password-form">
+                    <div class="form-row">
+                        <label for="currentPassword">Current Password:</label>
+                        <input type="password" id="currentPassword" name="currentPassword" placeholder="Enter current password" required />
+                    </div>
+                    <div class="form-row">
+                        <label for="newPassword">New Password:</label>
+                        <input type="password" id="newPassword" name="newPassword" placeholder="Enter new password" required />
+                    </div>
+                    <div class="form-row">
+                        <label for="confirmPassword">Confirm New Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm new password" required />
+                    </div>
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
