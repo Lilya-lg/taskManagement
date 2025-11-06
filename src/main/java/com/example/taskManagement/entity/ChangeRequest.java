@@ -35,6 +35,12 @@ public class ChangeRequest {
     @Column(name = "verification_plan", columnDefinition = "TEXT")
     private String verificationPlan;
 
+    @Column(name = "affected_item", columnDefinition = "TEXT")
+    private String affectedItem;
+
+    @Column(name = "changeReason", columnDefinition = "TEXT")
+    private String changeReason;
+
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Status cannot be null")
     @Column(nullable = false)
@@ -44,13 +50,30 @@ public class ChangeRequest {
         DRAFT, UNDER_REVIEW, APPROVED, REJECTED
     }
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "submitted_by_id")
+    private User submittedBy;
+
+    private java.time.LocalDateTime submittedAt;
+
+
     // Mapping to Task (foreign key to 'tasks' table)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
-
-    // Mapping to User (foreign key to 'users' table, for the person approving the request)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approved_by", referencedColumnName = "id", nullable = true)
-    private User approvedBy;
+    @JoinColumn(name = "reviewed_by_id")
+    private User reviewedBy;
+
+    private java.time.LocalDateTime reviewedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String reviewComment; // director's approve/decline note
+
+    // Convenience: whether the record is editable in UI/service
+    @Transient
+    public boolean isLocked() {
+        // lock when under review or decided
+        return status == Status.UNDER_REVIEW || status == Status.APPROVED || status == Status.REJECTED;
+    }
 }

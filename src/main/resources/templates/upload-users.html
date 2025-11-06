@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Users</title>
+</head>
+<body>
+<h2>Upload Excel File</h2>
+
+<form th:action="@{/upload-users}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".xlsx,.xls" required>
+    <button type="submit">Upload</button>
+</form>
+
+<p th:text="${message}" style="color:green"></p>
+
+<table border="1" th:if="${users}">
+    <tr><th>First Name</th><th>Last Name</th><th>Email</th></tr>
+    <tr th:each="u : ${users}">
+        <td th:text="${u.firstName}"></td>
+        <td th:text="${u.lastName}"></td>
+        <td th:text="${u.email}"></td>
+    </tr>
+</table>
+</body>
+</html>

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Task</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
 </head>
 <body>
 <div class="container">
@@ -15,27 +16,54 @@
         </form>
     </div>
     <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>Task Management</h2>
-        <ul>
-            <li><a th:href="@{/dashboard}">Dashboard</a></li>
-            <!-- Show to users with USER role -->
-            <li sec:authorize="hasRole('USER')">
-                <a th:href="@{/tasks}">Tasks</a>
-            </li>
-            <li sec:authorize="hasRole('IT_TEAM')">
-                <a th:href="@{/tasks/team}">Tasks</a>
-            </li>
+    <aside class="sidebar pretty" id="appSidebar">
+        <!-- Brand / collapse -->
+        <a class="sb-link" th:href="@{/dashboard}"
+           th:classappend="${page}=='dashboard' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>Dashboard</span>
+        </a>
 
-            <!-- Show to users with IT_MANAGER role -->
-            <li sec:authorize="hasRole('IT_MANAGER')">
-                <a th:href="@{/tasks/manager}">Tasks</a>
-            </li>
-            <li><a th:href="@{/change-requests}">Change Requests</a></li>
-            <li><a th:href="@{/users}">Users</a></li>
-            <li><a th:href="@{/profile}">Profile</a></li>
-        </ul>
-    </div>
+        <a class="sb-link" th:href="@{/tasks}" sec:authorize="hasRole('USER')"
+           th:classappend="${page}=='tasks' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>Tasks</span>
+        </a>
+
+        <a class="sb-link" th:href="@{/tasks/team}" sec:authorize="hasRole('IT_TEAM')"
+           th:classappend="${page}=='tasks-team' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0-4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>Team Tasks</span>
+        </a>
+
+        <a class="sb-link" th:href="@{/tasks/manager}" sec:authorize="hasRole('IT_MANAGER')"
+           th:classappend="${page}=='tasks-manager' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M12 6a3 3 0 1 1 3 3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>Manager Tasks</span>
+        </a>
+        <a class="sb-link" th:href="@{/tasks/director}" sec:authorize="hasRole('IT_DIRECTOR')"
+           th:classappend="${page}=='tasks-director' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M12 6a3 3 0 1 1 3 3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>All Tasks</span>
+        </a>
+        <a class="sb-link" th:href="@{/change-requests}"
+           th:classappend="${page}=='changes' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M4 4h10v6H4M4 14h16v6H4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>Change Requests</span>
+        </a>
+
+        <a class="sb-link" th:href="@{/users}"
+           th:classappend="${page}=='users' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M8 11a4 4 0 1 0-4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>Users</span>
+        </a>
+
+        <a class="sb-link" th:href="@{/profile}"
+           th:classappend="${page}=='profile' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>Profile</span>
+        </a>
+    </aside>
     <!-- Main content -->
     <div class="main-content">
         <header>
@@ -52,15 +80,14 @@
                     <label for="titleEditable">Title:</label>
 
                     <!-- Editable if status is TODO or user is not a USER -->
-                    <th:block th:if="${!(#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0 OR task.status == 'TODO')}">
-                        <input type="text" id="titleEditable" th:field="*{title}" placeholder="Task Title" />
+                    <th:block th:if="${task.status == 'TODO' or !(#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0)}">
+                        <input type="text" id="titleEditable" th:field="*{title}" placeholder="Task Title"/>
                     </th:block>
 
-                    <!-- Read-only if status is not TODO and user is a USER -->
-                    <th:block th:if="${#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0 and task.status != 'TODO'}">
-                        <input type="text" id="titleReadonly" th:field="*{title}" placeholder="Task Title" readonly />
+                    <!-- Read-only otherwise -->
+                    <th:block th:unless="${task.status == 'TODO' or !(#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0)}">
+                        <input type="text" id="titleReadonly" th:field="*{title}" placeholder="Task Title" readonly/>
                     </th:block>
-
                     <span th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Error</span>
                 </div>
 
@@ -69,12 +96,12 @@
                     <label for="descriptionEditable">Description:</label>
 
                     <!-- Editable if status is TODO or user is not a USER -->
-                    <th:block th:if="${!(#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0 OR task.status == 'TODO')}">
+                    <th:block th:if="${task.status == 'TODO' or !(#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0)}">
                         <textarea id="descriptionEditable" th:field="*{description}" rows="4" placeholder="Task Description"></textarea>
                     </th:block>
 
                     <!-- Read-only if status is not TODO and user is a USER -->
-                    <th:block th:if="${#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0 and task.status != 'TODO'}">
+                    <th:block th:unless="${task.status == 'TODO' or !(#authentication.authorities.?[authority == 'ROLE_USER'].size() > 0)}">
                         <textarea id="descriptionReadonly" th:field="*{description}" rows="4" placeholder="Task Description" readonly></textarea>
                     </th:block>
 
@@ -101,6 +128,7 @@
                             <option value="IN_PROGRESS">In Progress</option>
                             <option value="COMPLETED">Completed</option>
                         </select>
+                        <input type="hidden" th:field="*{status}"/>
                     </th:block>
 
                     <span th:if="${#fields.hasErrors('status')}" th:errors="*{status}">Error</span>
@@ -120,6 +148,15 @@
                     </th:block>
 
                     <span th:if="${#fields.hasErrors('dueDate')}" th:errors="*{dueDate}">Error</span>
+                </div>
+
+                <div class="form-row">
+                    <label for="priority">Priority:</label>
+                    <select id="priority" th:field="*{priority}">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
                 </div>
 
                 <div class="form-row">
@@ -181,7 +218,66 @@
                 </div>
             </form>
         </div>
+        <div id="comments" class="form-card">
+            <h3>Progress comments</h3>
+
+            <!-- Existing comments -->
+            <div th:if="${#lists.isEmpty(comments)}" class="muted">No comments yet.</div>
+            <ul th:if="${!#lists.isEmpty(comments)}" class="comment-list">
+                <li th:each="c : ${comments}" class="comment-item">
+                    <div class="comment-meta">
+                <span class="comment-author"
+                      th:text="${c.author != null ? c.author.firstName + ' ' + c.author.lastName : 'User'}">Author</span>
+                        <span class="comment-date"
+                              th:text="${#temporals.format(c.createdAt, 'yyyy-MM-dd HH:mm')}">2025-08-14 12:34</span>
+                    </div>
+                    <div class="comment-body" th:text="${c.body}">Comment text</div>
+
+                    <div class="comment-progress" th:if="${c.progressPercent != null}">
+                        Progress: <strong th:text="${c.progressPercent}">60</strong>%
+                        <div class="progress-bar">
+                            <div class="progress-fill" th:style="'width:' + ${c.progressPercent} + '%'"></div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- Add new comment -->
+            <h4>Add a comment</h4>
+            <form th:action="@{/task_details/{id}/comments(id=${task.id})}" method="post" th:object="${newComment}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="form-row">
+                    <label for="body">Comment</label>
+                    <textarea id="body" th:field="*{body}" rows="4" required
+                              placeholder="What changed since last update?"></textarea>
+                </div>
+                <div class="form-row">
+                    <label for="progressPercent">Progress % (optional)</label>
+                    <input id="progressPercent" th:field="*{progressPercent}" type="number" min="0" max="100"
+                           placeholder="e.g., 60"/>
+                </div>
+                <button type="submit" class="btn">Post comment</button>
+            </form>
+        </div>
     </div>
 </div>
 </body>
+<script>
+  (function(){
+    const sb = document.getElementById('appSidebar');
+    const btn = document.getElementById('sidebarToggle');
+
+    // Persist state across navigations (optional)
+    const key = 'sidebar.collapsed';
+    if (localStorage.getItem(key) === '1') sb.classList.add('is-collapsed');
+
+    btn?.addEventListener('click', function(){
+      sb.classList.toggle('is-collapsed');
+      localStorage.setItem(key, sb.classList.contains('is-collapsed') ? '1' : '0');
+    });
+
+    // On small screens you might prefer hiding instead of collapsing:
+    // toggle 'is-hidden' class instead if you like.
+  })();
+</script>
 </html>

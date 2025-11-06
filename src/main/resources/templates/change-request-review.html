@@ -3,7 +3,7 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="en">
 <head>
-    <title>User List</title>
+    <title>Review Change Request</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
@@ -63,58 +63,60 @@
         </a>
     </aside>
 
+
     <div class="main-content">
         <header>
-            <h1>User List</h1>
+            <h1>Review Change Request</h1>
+            <div class="muted">ID: <span th:text="${cr.id}">—</span>Status: <strong th:text="${cr.status}"></strong></div>
         </header>
-        <a href="/users/new" class="btn" sec:authorize="hasRole('IT_TEAM')">Create new User</a>
-        <!-- Table to display users -->
-        <table class="user-table">
-            <thead>
-            <tr>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Email</th>
-                <th>Request Type</th>
-                <th>Role</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!-- Iterate over the users list and display each user -->
-            <tr th:each="user : ${users}">
-                <td th:text="${user.firstName}">First Name</td>
-                <td th:text="${user.lastName}">Last Name</td>
-                <td th:text="${user.email}">Email</td>
-                <td th:text="${user.requestType}"></td>
-                <td th:text="${user.role}">Role</td>
-            </tr>
 
-            <!-- Message if no users are found -->
-            <tr th:if="${#lists.isEmpty(users)}">
-                <td colspan="4">No users found</td>
-            </tr>
-            </tbody>
-        </table>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+        <div th:if="${message}" class="alert success" th:text="${message}"></div>
+
+        <div class="details-card">
+            <h3 th:text="${cr.title}">Title</h3>
+            <p th:text="${cr.description}">Description</p>
+
+            <div class="grid-2">
+                <div><strong>Impact</strong><p th:text="${cr.impactAnalysis}">No data</p></div>
+                <div><strong>Risk</strong><p th:text="${cr.risk}">No data</p></div>
+            </div>
+
+            <div class="grid-2">
+                <div><strong>Affected Item</strong><p th:text="${cr.affectedItem}">No data</p></div>
+                <div><strong>Change Reason</strong><p th:text="${cr.changeReason}">No data</p></div>
+            </div>
+
+            <div class="grid-2">
+                <div><strong>Backout Plan</strong><p th:text="${cr.backoutPlan}">No data</p></div>
+                <div><strong>Verification Plan</strong><p th:text="${cr.verificationPlan}">No data</p></div>
+            </div>
+
+            <p><strong>Related Task:</strong>
+                <span th:if="${cr.task == null}">No data</span>
+                <a th:if="${cr.task != null}" th:href="@{/tasks/{id}(id=${cr.task.id})}" th:text="${cr.task.title}">Task</a>
+            </p>
+
+            <hr>
+
+            <form th:action="@{/change-requests/{id}/approve(id=${cr.id})}" method="post" sec:authorize="hasRole('IT_DIRECTOR')" style="margin-bottom:10px;">
+                <label for="commentApprove">Comment (optional)</label>
+                <textarea id="commentApprove" name="comment" rows="3" placeholder="Approval notes (optional)"></textarea>
+                <div class="action-buttons">
+                    <button type="submit" class="btn">Approve</button>
+                    <a th:href="@{/change-requests/{id}(id=${cr.id})}" class="btn btn-secondary">Back</a>
+                </div>
+            </form>
+
+            <form th:action="@{/change-requests/{id}/decline(id=${cr.id})}" method="post" sec:authorize="hasRole('IT_DIRECTOR')">
+                <label for="commentDecline">Comment (required)</label>
+                <textarea id="commentDecline" name="comment" rows="3" required placeholder="Reason for decline"></textarea>
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-danger">Decline</button>
+                </div>
+            </form>
+        </div>
     </div>
-
 </div>
 </body>
-<script>
-  (function(){
-    const sb = document.getElementById('appSidebar');
-    const btn = document.getElementById('sidebarToggle');
-
-    // Persist state across navigations (optional)
-    const key = 'sidebar.collapsed';
-    if (localStorage.getItem(key) === '1') sb.classList.add('is-collapsed');
-
-    btn?.addEventListener('click', function(){
-      sb.classList.toggle('is-collapsed');
-      localStorage.setItem(key, sb.classList.contains('is-collapsed') ? '1' : '0');
-    });
-
-    // On small screens you might prefer hiding instead of collapsing:
-    // toggle 'is-hidden' class instead if you like.
-  })();
-</script>
 </html>

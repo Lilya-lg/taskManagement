@@ -4,6 +4,7 @@ package com.example.taskManagement.controller;
 import com.example.taskManagement.entity.User;
 import com.example.taskManagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -32,7 +33,6 @@ public class UserController {
         return "user-form";
     }
 
-    // POST request to handle form submission and save user
     @PostMapping("/users/new")
     public String createUser(@Valid @ModelAttribute("user") User user, BindingResult result) {
         if (result.hasErrors()) {
@@ -44,11 +44,11 @@ public class UserController {
         return "redirect:/dashboard";
     }
 
-    // GET request to display all users
     @GetMapping("/users")
     public String listUsers(Model model) {
         List<User> users = userService.getAllUsers();
         model.addAttribute("users", users);
+        model.addAttribute("page", "users");
         return "user-list";
     }
 }

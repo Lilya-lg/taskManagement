@@ -3,6 +3,7 @@
 <head>
     <title>Task List</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <meta charset="UTF-8">
 </head>
 <body>
 <div class="container">
@@ -11,113 +12,222 @@
             <button type="submit">Logout</button>
         </form>
     </div>
-    <div class="sidebar">
-        <h2>Task Management</h2>
-        <ul>
-            <li><a th:href="@{/dashboard}">Dashboard</a></li>
-            <!-- Show to users with USER role -->
-            <li sec:authorize="hasRole('USER')">
-                <a th:href="@{/tasks}">Tasks</a>
-            </li>
-            <li sec:authorize="hasRole('IT_TEAM')">
-                <a th:href="@{/tasks/team}">Tasks</a>
-            </li>
+    <!-- Sidebar -->
+    <aside class="sidebar pretty" id="appSidebar">
+        <!-- Brand / collapse -->
+        <a class="sb-link" th:href="@{/dashboard}"
+           th:classappend="${page}=='dashboard' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24">
+                <path d="M3 11l9-7 9 7v8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span>Dashboard</span>
+        </a>
 
-            <!-- Show to users with IT_MANAGER role -->
-            <li sec:authorize="hasRole('IT_MANAGER')">
-                <a th:href="@{/tasks/manager}">Tasks</a>
-            </li>
-            <li><a th:href="@{/change-requests}">Change Requests</a></li>
-            <li><a th:href="@{/users}">Users</a></li>
-            <li><a th:href="@{/profile}">Profile</a></li>
-        </ul>
-    </div>
+        <a class="sb-link" th:href="@{/tasks}" sec:authorize="hasRole('USER')"
+           th:classappend="${page}=='tasks' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24">
+                <path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span>Tasks</span>
+        </a>
 
+        <a class="sb-link" th:href="@{/tasks/team}" sec:authorize="hasRole('IT_TEAM')"
+           th:classappend="${page}=='tasks-team' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24">
+                <path d="M12 12a4 4 0 1 0-4-4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span>Team Tasks</span>
+        </a>
+
+        <a class="sb-link" th:href="@{/tasks/manager}" sec:authorize="hasRole('IT_MANAGER')"
+           th:classappend="${page}=='tasks-manager' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24">
+                <path d="M12 6a3 3 0 1 1 3 3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span>Manager Tasks</span>
+        </a>
+        <a class="sb-link" th:href="@{/tasks/director}" sec:authorize="hasRole('IT_DIRECTOR')"
+           th:classappend="${page}=='tasks-director' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24"><path d="M12 6a3 3 0 1 1 3 3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span>All Tasks</span>
+        </a>
+        <a class="sb-link" th:href="@{/change-requests}"
+           th:classappend="${page}=='changes' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24">
+                <path d="M4 4h10v6H4M4 14h16v6H4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span>Change Requests</span>
+        </a>
+
+        <a class="sb-link" th:href="@{/users}"
+           th:classappend="${page}=='users' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24">
+                <path d="M8 11a4 4 0 1 0-4-4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span>Users</span>
+        </a>
+
+        <a class="sb-link" th:href="@{/profile}"
+           th:classappend="${page}=='profile' ? ' active' : ''">
+            <svg class="i" viewBox="0 0 24 24">
+                <path d="M12 12a5 5 0 1 0-5-5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span>Profile</span>
+        </a>
+    </aside>
     <div class="main-content">
-        <header>
-            <h1>Task List</h1>
-        </header>
-
-        <!-- Filters Section -->
-        <form method="get" th:action="@{/tasks}">
-            <div class="filters">
-                <label for="status">Status:</label>
-                <select id="status" name="status">
-                    <option value="">All</option>
-                    <option value="TODO" th:selected="${filterStatus == 'TODO'}">Open</option>
-                    <option value="IN_PROGRESS" th:selected="${filterStatus == 'IN_PROGRESS'}">In Progress</option>
-                    <option value="CLOSED" th:selected="${filterStatus == 'CLOSED'}">Closed</option>
-                </select>
-
-                <label for="requestType">Request Type:</label>
-                <select id="requestType" name="requestType">
-                    <option value="">All</option>
-                    <option value="INFRA" th:selected="${filterRequestType == 'INFRA'}">Infra</option>
-                    <option value="PROD_APPS" th:selected="${filterRequestType == 'PROD_APPS'}">Prod Apps</option>
-                    <option value="BUSINESS_APPS" th:selected="${filterRequestType == 'BUSINESS_APPS'}">Business Apps</option>
-                </select>
-
-                <label for="assignedUser">Assigned User:</label>
-                <select id="assignedUser" name="assignedUser">
-                    <option value="">All</option>
-                    <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.firstName + ' ' + user.lastName}" th:selected="${filterAssignedUser == user.id}"></option>
-                </select>
-
-                <button type="submit" class="btn">Filter</button>
+        <header class="page-header">
+            <div class="ph-left">
+                <button id="sidebarToggle" aria-label="Toggle Sidebar">
+                    <svg width="24" height="24" viewBox="0 0 100 80" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100" height="12"></rect>
+                        <rect y="34" width="100" height="12"></rect>
+                        <rect y="68" width="100" height="12"></rect>
+                    </svg>
+                </button>
+                <h1>Tasks</h1>
+                <span class="subtle" th:text="${tasks.size()} + ' items'">—</span>
             </div>
-        </form>
+
+            <!-- Quick search (optional: wire to your controller with ?q=...) -->
+        </header>
+        <div class="alerts">
+            <div th:if="${message}" class="alert alert--success" role="status" aria-live="polite">
+                <svg viewBox="0 0 24 24" class="alert__icon">
+                    <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm-1 11.732 5.196-5.196 1.414 1.414L11 16.268 6.39 11.657l1.414-1.414L11 13.904z"
+                          fill="currentColor"/>
+                </svg>
+                <span th:text="${message}">Success</span>
+                <button type="button" class="alert__close" onclick="this.parentNode.remove()" aria-label="Dismiss">×
+                </button>
+            </div>
+
+            <div th:if="${error}" class="alert alert--error" role="alert" aria-live="assertive">
+                <svg viewBox="0 0 24 24" class="alert__icon">
+                    <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 13H11v2h2v-2Zm0-8h-2v6h2V7Z"
+                          fill="currentColor"/>
+                </svg>
+                <span th:text="${error}">Something went wrong</span>
+                <button type="button" class="alert__close" onclick="this.parentNode.remove()" aria-label="Dismiss">×
+                </button>
+            </div>
+        </div>
 
         <!-- Button to create a new task -->
         <a href="/tasks/new" class="btn">Create New Task</a>
 
         <!-- Task table to display all tasks -->
-        <table class="task-table">
+        <table class="table sleek">
             <thead>
             <tr>
                 <th>Title</th>
                 <th>Status</th>
-                <th>Due Date</th>
-                <th>Assigned User</th>
+                <th>Due</th>
+                <th>Assignee</th>
                 <th>Requester</th>
-                <th>Request Type</th>
                 <th>Priority</th>
+                <th>Type</th>
                 <th>File</th>
-                <th>Actions</th>
+                <th class="t-right">Actions</th>
             </tr>
             </thead>
             <tbody>
-            <!-- Iterate through the tasks using Thymeleaf -->
             <tr th:each="task : ${tasks}">
-                <td th:text="${task.title}">Task Title</td>
-                <td th:text="${task.status}">Task Status</td>
-                <td th:text="${task.dueDate != null ? task.dueDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd-MM-yyyy')) : 'No due date'}">Due Date</td>
-
-                <td th:text="${task.assignedUser != null ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName : ' No assigned user '}">Assigned User</td>
-                <td th:text="${task.requester != null ? task.requester.firstName + ' ' + task.requester.lastName : ' No data '}">Requester</td>
-                <td th:text="${task.priority != null ? task.priority : ' No data '}">Priority</td>
-                <td th:text="${task.requestType}"></td>
                 <td>
-                    <!-- If the task has an associated file, display the download link -->
+                    <a th:href="@{/tasks/{id}(id=${task.id})}" class="link-strong" th:text="${task.title}">Task</a>
+                    <div class="muted small" th:text="${task.description}">—</div>
+                </td>
+
+                <!-- status pill -->
+                <td>
+        <span class="pill"
+              th:classappend="${task.status.name()=='TODO'} ? ' pill--open' :
+                              (${task.status.name()=='IN_PROGRESS'} ? ' pill--warn' : ' pill--done')"
+              th:text="${task.status}">Status</span>
+                </td>
+
+                <td th:text="${task.dueDate != null ?
+            task.dueDate.format(T(java.time.format.DateTimeFormatter).ofPattern('dd MMM')) : '—'}">—</td>
+
+                <td th:text="${task.assignedUser != null ? task.assignedUser.firstName + ' ' + task.assignedUser.lastName : '—'}">—</td>
+                <td th:text="${task.requester != null ? task.requester.firstName + ' ' + task.requester.lastName : '—'}">—</td>
+
+                <!-- priority pill -->
+                <td>
+        <span class="pill"
+              th:classappend="${task.priority != null && task.priority.name()=='High'} ? ' pill--danger' :
+                              (${task.priority != null && task.priority.name()=='Medium'} ? ' pill--warn' : ' pill--open')"
+              th:text="${task.priority != null ? task.priority : '—'}">—</span>
+                </td>
+
+                <!-- request type chip -->
+                <td>
+                    <span class="chip chip--type" th:text="${task.requestType}">Type</span>
+                </td>
+
+                <td>
                     <a th:if="${task.fileName != null}"
                        th:href="@{/tasks/file/{fileName}(fileName=${task.fileName})}"
-                       th:text="${task.fileName}">Download</a>
-
-                    <!-- If there is no file associated, display 'No files' -->
-                    <span th:if="${task.fileName == null}">No files</span>
+                       class="link-file">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <span th:text="${task.fileName}">file</span>
+                    </a>
+                    <span th:if="${task.fileName == null}" class="muted">No files</span>
                 </td>
+
                 <td>
                     <a th:href="@{/tasks/{id}(id=${task.id})}">View</a> |
                     <a th:href="@{/tasks/edit/{id}(id=${task.id})}">Edit</a>
                     <a th:href="@{/tasks/delete/{id}(id=${task.id})}" onclick="return confirm('Are you sure you want to delete this task?');">Delete</a>
                 </td>
             </tr>
-            <!-- Display a message if there are no tasks -->
+
             <tr th:if="${tasks.size() == 0}">
-                <td colspan="8">No tasks found</td>
+                <td colspan="9" class="empty-row">
+                    <div class="empty">
+                        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <div>No tasks found</div>
+                    </div>
+                </td>
             </tr>
             </tbody>
         </table>
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:href="@{/tasks(page=${currentPage - 1})}"
+               th:if="${currentPage > 1}"
+               class="page-link">Previous</a>
+
+            <span th:each="i : ${#numbers.sequence(1, totalPages)}">
+        <a th:href="@{/tasks(page=${i})}"
+           th:text="${i}"
+           th:classappend="${i == currentPage} ? 'page-link active' : 'page-link'">1</a>
+    </span>
+
+            <a th:href="@{/tasks(page=${currentPage + 1})}"
+               th:if="${currentPage < totalPages}"
+               class="page-link">Next</a>
+        </div>
     </div>
 </div>
 </body>
+<script>
+  (function(){
+    const sb = document.getElementById('appSidebar');
+    const btn = document.getElementById('sidebarToggle');
+
+    // Persist state across navigations (optional)
+    const key = 'sidebar.collapsed';
+    if (localStorage.getItem(key) === '1') sb.classList.add('is-collapsed');
+
+    btn?.addEventListener('click', function(){
+      sb.classList.toggle('is-collapsed');
+      localStorage.setItem(key, sb.classList.contains('is-collapsed') ? '1' : '0');
+    });
+
+    // On small screens you might prefer hiding instead of collapsing:
+    // toggle 'is-hidden' class instead if you like.
+  })();
+
+</script>
+
 </html>

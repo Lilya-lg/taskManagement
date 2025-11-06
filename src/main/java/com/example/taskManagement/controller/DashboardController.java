@@ -1,7 +1,7 @@
 package com.example.taskManagement.controller;
 
 import com.example.taskManagement.entity.User;
-import com.example.taskManagement.service.TaskService;
+import com.example.taskManagement.service.TaskQueryService;
 import com.example.taskManagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -14,9 +14,8 @@ import java.security.Principal;
 
 @Controller
 public class DashboardController {
-
     @Autowired
-    private TaskService taskService;
+    private TaskQueryService taskQueryService;
 
     @Autowired
     private UserService userService;
@@ -44,26 +43,27 @@ public class DashboardController {
         boolean hasDirectorRole = authentication.getAuthorities().stream()
                 .anyMatch(r -> r.getAuthority().equals("ROLE_IT_DIRECTOR"));
         if (hasUserRole) {
-            model.addAttribute("totalTasks", taskService.countAllTasksByRequester(usernameU));
-            model.addAttribute("tasksInProgress", taskService.countTasksByStatusForUser("IN_PROGRESS", usernameU));
-            model.addAttribute("completedTasks", taskService.countTasksByStatusForUser("COMPLETED", usernameU));
-            model.addAttribute("overdueTasks", taskService.countOverdueTasksForUser(usernameU));
+            model.addAttribute("totalTasks", taskQueryService.countByRequester(usernameU));
+            model.addAttribute("tasksInProgress", taskQueryService.countByStatusForRequester("IN_PROGRESS", usernameU));
+            model.addAttribute("completedTasks", taskQueryService.countByStatusForRequester("COMPLETED", usernameU));
+            model.addAttribute("overdueTasks", taskQueryService.countOverdueForRequester(usernameU));
         } else if (hasTeamRole) {
-            model.addAttribute("totalTasks", taskService.countAllTasksByAssignedUser(usernameU));
-            model.addAttribute("tasksInProgress", taskService.countTasksByStatusAndAssignedUser("IN_PROGRESS", usernameU));
-            model.addAttribute("completedTasks", taskService.countTasksByStatusAndAssignedUser("COMPLETED", usernameU));
-            model.addAttribute("overdueTasks", taskService.countOverdueTasksForAssignedUser(usernameU));
+            model.addAttribute("totalTasks", taskQueryService.countByAssignedUser(usernameU));
+            model.addAttribute("tasksInProgress", taskQueryService.countByStatusAndAssignedUser("IN_PROGRESS", usernameU));
+            model.addAttribute("completedTasks", taskQueryService.countByStatusAndAssignedUser("COMPLETED", usernameU));
+            model.addAttribute("overdueTasks", taskQueryService.countOverdueForAssignedUser(usernameU));
         } else if (hasManagerRole) {
-            model.addAttribute("totalTasks", taskService.countAllTasksByRequestType(usernameU.getRequestType()));
-            model.addAttribute("tasksInProgress", taskService.countTasksByStatusAndRequest_Type("IN_PROGRESS", usernameU.getRequestType()));
-            model.addAttribute("completedTasks", taskService.countTasksByStatusAndRequest_Type("COMPLETED", usernameU.getRequestType()));
-            model.addAttribute("overdueTasks", taskService.countOverdueTasksForTeam(usernameU.getRequestType()));
+            model.addAttribute("totalTasks", taskQueryService.countByRequestType(usernameU.getRequestType()));
+            model.addAttribute("tasksInProgress", taskQueryService.countByStatusAndRequestType("IN_PROGRESS", usernameU.getRequestType()));
+            model.addAttribute("completedTasks", taskQueryService.countByStatusAndRequestType("COMPLETED", usernameU.getRequestType()));
+            model.addAttribute("overdueTasks", taskQueryService.countOverdueForRequestType(usernameU.getRequestType()));
         } else if (hasDirectorRole) {
-            model.addAttribute("totalTasks", taskService.countAllTasks());
-            model.addAttribute("tasksInProgress", taskService.countTasksByStatus("IN_PROGRESS"));
-            model.addAttribute("completedTasks", taskService.countTasksByStatus("COMPLETED"));
-            model.addAttribute("overdueTasks", taskService.countOverdueTasks());
+            model.addAttribute("totalTasks", taskQueryService.countAllTasks());
+            model.addAttribute("tasksInProgress", taskQueryService.countByStatus("IN_PROGRESS"));
+            model.addAttribute("completedTasks", taskQueryService.countByStatus("COMPLETED"));
+            model.addAttribute("overdueTasks", taskQueryService.countOverdueTasks());
         }
+        model.addAttribute("page", "dashboard");
         return "dashboard";
     }
 

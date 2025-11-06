@@ -1,26 +1,48 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Login</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
+  <title>Login</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form th:action="@{/login}" method="post">
-            <div class="form-group">
-                <label for="username">Email:</label>
-                <input type="text" id="username" name="username" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" class="form-control">
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Login</button>
-            </div>
-        </form>
+  <div class="login-container">
+    <h2>Login</h2>
+
+    <!-- SUCCESS / LOGOUT MESSAGE -->
+    <div class="alert success" th:if="${param.logout}">
+      You have been logged out.
     </div>
+
+    <!-- ERROR MESSAGE -->
+    <div class="alert error" th:if="${param.error}">
+      <span th:if="${#strings.contains(session.SPRING_SECURITY_LAST_EXCEPTION?.message, 'User not found')}">
+        User not found.
+      </span>
+      <span th:if="${!#strings.contains(session.SPRING_SECURITY_LAST_EXCEPTION?.message, 'User not found')}">
+        Password is not correct.
+      </span>
+    </div>
+
+    <form th:action="@{/login}" method="post">
+      <div class="form-group">
+        <label for="username">Email:</label>
+        <input type="text" id="username" name="username" class="form-control" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" class="form-control" autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary">Login</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- quick styles (or move to styles.css) -->
+  <style>
+    .alert{margin:12px 0;padding:10px 12px;border-radius:8px}
+    .alert.error{background:#fee2e2;color:#7f1d1d;border:1px solid #fecaca}
+    .alert.success{background:#dcfce7;color:#14532d;border:1px solid #bbf7d0}
+  </style>
 </body>
 </html>
-

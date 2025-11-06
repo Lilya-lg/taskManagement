@@ -2,9 +2,11 @@ package com.example.taskManagement.service;
 import com.example.taskManagement.entity.RequestType;
 import com.example.taskManagement.entity.Task;
 import com.example.taskManagement.entity.User;
+import com.example.taskManagement.event.TaskCreatedEvent;
 import com.example.taskManagement.repository.TaskRepository;
 import com.example.taskManagement.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,12 +15,17 @@ import java.util.Optional;
 
 @Service
 public class TaskService {
+    private final TaskRepository taskRepository;
+    private final ApplicationEventPublisher events;
+    private final UserRepository userRepository;
+    private final UserService userService;
 
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    public TaskService(TaskRepository taskRepository, ApplicationEventPublisher events, UserRepository userRepository, UserService userService) {
+        this.taskRepository = taskRepository;
+        this.events = events;
+        this.userRepository = userRepository;
+        this.userService = userService;
+    }
 
     public List<Task> getAllTasks() {
         return taskRepository.findAll();
@@ -38,9 +45,10 @@ public class TaskService {
     public long countTasksByStatusAndAssignedUser(String status,User user){
         return taskRepository.countByStatusAndAssignedUser(Task.Status.valueOf(status),user);
     }
+    /*
     public List<Task> getTasksForItManager(String username) {
         // Find the IT_MANAGER's department type
-        User itManager = userRepository.findByEmail(username); // Assuming login is by email
+        User itManager = userRepository.findByEmailIgnoreCase(username); // Assuming login is by email
         if (itManager == null || !"IT_MANAGER".equals(itManager.getRole().name())) {
             throw new RuntimeException("Access denied: Not an IT_MANAGER");
         }
@@ -48,6 +56,8 @@ public class TaskService {
         // Fetch tasks for the IT_MANAGER's department with status IN_PROGRESS
         return taskRepository.findByStatusNotAndRequestType(Task.Status.COMPLETED, itManager.getRequestType());
     }
+
+     */
     public long countOverdueTasksForAssignedUser(User assignedUser){
         LocalDate today = LocalDate.now();
         return taskRepository.countByDueDateBeforeAndStatusNotAndAssignedUser(today, Task.Status.COMPLETED,assignedUser);
@@ -90,8 +100,6 @@ public class TaskService {
     }
     public void sendForApproval(Task task) {
         if (task.getNeedApproval() && !"COMPLETED".equals(task.getStatus())) {
-            // Logic to handle the approval process, e.g., update status, send notifications, etc.
-            //task.setStatus("PENDING_APPROVAL");
             taskRepository.save(task);
         } else {
             throw new IllegalStateException("Task cannot be sent for approval.");
@@ -99,6 +107,28 @@ public class TaskService {
     }
     public void deleteTaskById(Long id) {
         taskRepository.deleteById(id);
+    }
+
+    public Task createTaskFromEmail(String subject, String body, String from, String messageId) {
+        if (messageId != null && taskRepository.findByExternalId(messageId).isPresent()) {
+            System.out.println("⚠️ Дубликат письма: " + messageId);
+            return null;
+        }
+
+        Task task = new Task();
+        task.setTitle(subject != null ? subject : "Без темы");
+        task.setRequestType(RequestType.BUSINESS_APPS);
+        task.setDescription(body != null ? body : "Без содержания");
+        task.setRequester(userService.getUserByEmail(from));
+        task.setExternalId(messageId);
+        task.setDueDate(LocalDate.now());
+        task.setStatus(Task.Status.TODO);
+
+        Task saved = taskRepository.save(task);
+        events.publishEvent(new TaskCreatedEvent(saved.getId()));
+        System.out.println("✅ Создана новая задача ID=" + saved.getId() + " из письма " + from);
+
+        return saved;
     }
 
 

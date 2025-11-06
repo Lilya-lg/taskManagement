@@ -70,13 +70,7 @@
   <div class="main-content">
     <header>
       <h1>Task List</h1>
-      <button id="sidebarToggle" aria-label="Toggle Sidebar">
-        <svg width="24" height="24" viewBox="0 0 100 80" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100" height="12"></rect>
-          <rect y="34" width="100" height="12"></rect>
-          <rect y="68" width="100" height="12"></rect>
-        </svg>
-      </button>
+      <button id="sidebarToggle">☰</button>
     </header>
     <div class="alerts">
       <div th:if="${message}" class="alert alert--success" role="status" aria-live="polite">
@@ -92,7 +86,33 @@
       </div>
     </div>
     <!-- Filters Section -->
+    <form method="get" th:action="@{/tasks/director}">
+      <div class="filters">
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+          <option value="">All</option>
+          <option value="TODO" th:selected="${filterStatus == 'TODO'}">Open</option>
+          <option value="IN_PROGRESS" th:selected="${filterStatus == 'IN_PROGRESS'}">In Progress</option>
+          <option value="COMPLETED" th:selected="${filterStatus == 'CLOSED'}">Closed</option>
+        </select>
 
+        <label for="requestType">Request Type:</label>
+        <select id="requestType" name="requestType">
+          <option value="">All</option>
+          <option value="INFRA" th:selected="${filterRequestType == 'INFRA'}">Infra</option>
+          <option value="PROD_APPS" th:selected="${filterRequestType == 'PROD_APPS'}">Prod Apps</option>
+          <option value="BUSINESS_APPS" th:selected="${filterRequestType == 'BUSINESS_APPS'}">Business Apps</option>
+        </select>
+
+        <label for="assignedUser">Assigned User:</label>
+        <select id="assignedUser" name="assignedUser">
+          <option value="">All</option>
+          <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.firstName + ' ' + user.lastName}" th:selected="${filterAssignedUser == user.id}"></option>
+        </select>
+
+        <button type="submit" class="btn">Filter</button>
+      </div>
+    </form>
 
     <!-- Button to create a new task -->
     <a href="/tasks/new" class="btn">Create New Task</a>

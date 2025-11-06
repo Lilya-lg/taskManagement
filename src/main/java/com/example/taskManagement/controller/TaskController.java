@@ -3,15 +3,20 @@ package com.example.taskManagement.controller;
 import com.example.taskManagement.entity.RequestType;
 import com.example.taskManagement.entity.Task;
 import com.example.taskManagement.entity.User;
+import com.example.taskManagement.event.TaskAssignedUserChangedEvent;
+import com.example.taskManagement.event.TaskStatusChangedEvent;
+import com.example.taskManagement.repository.TaskCommentRepository;
 import com.example.taskManagement.repository.TaskRepository;
-import com.example.taskManagement.service.TaskService;
-import com.example.taskManagement.service.UserService;
+import com.example.taskManagement.service.*;
 import jakarta.validation.Valid;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -29,70 +34,152 @@ import java.nio.file.Paths;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/tasks")
 public class TaskController {
     @Value("${file.upload-dir}")
-    private String uploadDir;
+    private  String uploadDir;
     private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private TaskService taskService;
-    @Autowired
-    private UserService userService;
+    private final TaskRepository taskRepository;
+    private final TaskQueryService taskQueryService;
+    private final TaskManagementService taskManagementService;
+    private final ITSpecialistTaskService itSpecialistTaskService;
+    private final ITManagerTaskService itManagerTaskService;
+    private final UserService userService;
+    private final TaskCommentRepository commentRepo;
+    private final ApplicationEventPublisher events;
+
+    public TaskController(TaskRepository taskRepository, TaskQueryService taskQueryService, TaskManagementService taskManagementService, ITSpecialistTaskService itSpecialistTaskService, ITManagerTaskService itManagerTaskService, UserService userService, TaskCommentRepository commentRepo, ApplicationEventPublisher events) {
+        this.taskRepository = taskRepository;
+        this.taskQueryService = taskQueryService;
+        this.taskManagementService = taskManagementService;
+        this.itSpecialistTaskService = itSpecialistTaskService;
+        this.itManagerTaskService = itManagerTaskService;
+        this.userService = userService;
+        this.commentRepo = commentRepo;
+        this.events = events;
+    }
+
 
     @GetMapping
-    public String getAllTasks(Model model, Principal principal) {
-        User user = new User();
+    public String getAllTasks(@RequestParam(required = false) String status,
+                              @RequestParam(required = false) RequestType requestType,
+                              @RequestParam(required = false) Long assignedUser,
+                              Model model,
+                              Principal principal,
+                              @RequestParam(defaultValue = "1") int page,
+                              @RequestParam(defaultValue = "10") int size){
+        User requester = null;
         if (principal != null) {
-            String currentUsername = principal.getName();
-            user = userService.getUserByEmail(currentUsername);
+            requester = userService.getUserByEmail(principal.getName());
         }
 
-        List<Task> tasks = taskService.getTasksByRequester(user);
+        Task.Status statusEnum = null;
+        if (status != null && !status.isBlank()) {
+            if ("CLOSED".equalsIgnoreCase(status)) status = "COMPLETED";
+            statusEnum = Task.Status.valueOf(status);
+        }
 
-        model.addAttribute("tasks", tasks);
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Task> taskPage = taskQueryService.findByFiltersForRequesterPageable(
+                requester, statusEnum, requestType, assignedUser, pageable);
+        List<User> users = userService.getAllUsers();
+
+        model.addAttribute("tasks", taskPage.getContent());
+        model.addAttribute("users", users);
+
+        model.addAttribute("filterStatus", status);
+        model.addAttribute("filterRequestType", requestType);
+        model.addAttribute("filterAssignedUser", assignedUser);
+
+        model.addAttribute("page", "tasks");
+
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", taskPage.getTotalPages());
 
         return "task-list";
     }
 
+
     @GetMapping("/manager")
-    public String viewTasksForManager(Model model, Authentication authentication) {
-        // Get the logged-in user's email
+    public String viewTasksForManager(Model model, Authentication authentication, @RequestParam(defaultValue = "1") int page,
+                                      @RequestParam(defaultValue = "10") int size) {
         String username = authentication.getName();
-        // Fetch tasks for the IT_MANAGER
-        List<Task> tasks = taskService.getTasksForItManager(username);
-
-        // Add tasks to the model
+        List<Task> tasks = itManagerTaskService.getTasksForManager(username);
         model.addAttribute("tasks", tasks);
-
-        return "task-list-department"; // Thymeleaf template
+        model.addAttribute("page", "tasks-manager");
+        return "task-list-department";
     }
 
-    @GetMapping("/team")
-    public String viewTasksForSpecialist(Model model, Principal principal) {
-        // Get the logged-in user's email
+    @GetMapping("/director")
+    public String viewTasksForDirector(@RequestParam(required = false) String status,
+                                       @RequestParam(required = false) RequestType requestType,
+                                       @RequestParam(required = false) Long assignedUser,
+            Model model, Principal principal, @RequestParam(defaultValue = "1") int page,
+                                       @RequestParam(defaultValue = "10") int size) {
         User username = new User();
         if (principal != null) {
             String currentUsername = principal.getName();
             username = userService.getUserByEmail(currentUsername);
         }
-        // Fetch tasks for the IT_MANAGER
-        List<Task> tasks = taskService.getTasksForItSpecialist(username);
+        Task.Status statusEnum = null;
+        if (status != null && !status.isBlank()) {
+            if ("CLOSED".equalsIgnoreCase(status)) status = "COMPLETED";
+            statusEnum = Task.Status.valueOf(status);
+        }
+        List<Task> tasks = taskQueryService.findByFiltersForAll(
+                statusEnum,
+                requestType,
+                assignedUser
+        );
 
-        // Add tasks to the model
+        List<User> users = userService.getAllUsers();
         model.addAttribute("tasks", tasks);
+        model.addAttribute("page", "tasks-director");
+        return "task-list-director";
+    }
 
-        return "task-list-department"; // Thymeleaf template
+
+    @GetMapping("/team")
+    public String viewTasksForSpecialist(@RequestParam(required = false) String status,
+                                         @RequestParam(required = false) RequestType requestType,
+                                         @RequestParam(required = false) Long assignedUser,
+                                         Model model,
+                                         Principal principal, @RequestParam(defaultValue = "1") int page,
+                                         @RequestParam(defaultValue = "10") int size) {
+        User username = new User();
+        if (principal != null) {
+            String currentUsername = principal.getName();
+            username = userService.getUserByEmail(currentUsername);
+        }
+        Task.Status statusEnum = null;
+        if (status != null && !status.isBlank()) {
+            if ("CLOSED".equalsIgnoreCase(status)) status = "COMPLETED";
+            statusEnum = Task.Status.valueOf(status);
+        }
+        List<Task> tasks = taskQueryService.findByFiltersForAssignee(
+                username,
+                statusEnum,
+                assignedUser
+        );
+        List<User> users = userService.getAllUsers();
+
+        model.addAttribute("tasks", tasks);
+        model.addAttribute("users", users);
+
+        model.addAttribute("filterStatus", status);
+        model.addAttribute("filterRequestType", requestType);
+        model.addAttribute("filterAssignedUser", assignedUser);
+
+        // Active sidebar item
+        model.addAttribute("page", "tasks-team");
+
+        return "task-list-department";
     }
 
     @GetMapping("/new")
@@ -106,7 +193,7 @@ public class TaskController {
         if (principal != null) {
             String currentUsername = principal.getName();
             User requester = userService.getUserByEmail(currentUsername);
-            task.setRequester(requester); // Bind requester to the task
+            task.setRequester(requester);
         }
         task.setDueDate(LocalDate.now());
         task.setStatus(Task.Status.TODO);
@@ -114,23 +201,20 @@ public class TaskController {
         return "task-form";
     }
 
-    // POST request to handle form submission for creating a new task
     @PostMapping("/new")
-    public String createTask(@Valid @ModelAttribute("task") Task task, BindingResult result, Model model, Principal principal, @RequestParam("file") MultipartFile file, Authentication authentication) {
-        // Check for validation errors
-
-
+    public String createTask(@Valid @ModelAttribute("task") Task task, BindingResult result, Model model,
+                             Principal principal, @RequestParam("file") MultipartFile file,
+                             Authentication authentication) {
         if (result.hasErrors()) {
-            // If there are errors, return the form view with validation messages
-            model.addAttribute("users", userService.getAllUsers()); // Keep user list in the form
+            model.addAttribute("users", userService.getAllUsers());
             return "task-form";
         }
         if (principal != null) {
-            String currentUsername = principal.getName(); // Get username of the logged-in user
-            User requester = userService.getUserByEmail(currentUsername);  // Assuming email is used as username
-            task.setRequester(requester);  // Set the current user as the requester
+            String currentUsername = principal.getName();
+            User requester = userService.getUserByEmail(currentUsername);
+            task.setRequester(requester);
         } else {
-            model.addAttribute("requester", null);  // Set to null if not logged in
+            model.addAttribute("requester", null);
         }
 
         if (!file.isEmpty()) {
@@ -155,22 +239,29 @@ public class TaskController {
             }
         }
         if (task.getDueDate() == null) {
-            task.setDueDate(LocalDate.now()); // Default to today if not set
+            task.setDueDate(LocalDate.now());
         }
-        taskService.saveTask(task);
+        taskManagementService.save(task);
         if (authentication != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_IT_MANAGER"))) {
             return "redirect:/tasks/manager";
         } else if (authentication != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_IT_TEAM"))) {
             return "redirect:/tasks/team";
         }
+     else if (authentication != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority(
+            "ROLE_IT_DIRECTOR"))) {
+        return "redirect:/tasks/director";
+    }
         return "redirect:/tasks";
     }
 
     @PostMapping("/edit/{id}")
-    public String updateTask(@PathVariable Long id, @ModelAttribute("task") Task updatedTask, @RequestParam("file") MultipartFile file, Authentication authentication) {
-        Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
+    public String updateTask(@PathVariable Long id, @ModelAttribute("task") Task updatedTask,
+                             @RequestParam("file") MultipartFile file, Authentication authentication) {
+        Task task = taskQueryService.findById(id);
         task.setTitle(updatedTask.getTitle());
         task.setDescription(updatedTask.getDescription());
+        Task.Status oldStatus = task.getStatus();
+        User oldUser = task.getAssignedUser();
         task.setStatus(updatedTask.getStatus());
         task.setAssignedUser(updatedTask.getAssignedUser());
         task.setRequestType(updatedTask.getRequestType());
@@ -179,7 +270,6 @@ public class TaskController {
 
         if (!file.isEmpty()) {
             try {
-                // Save the file to the local filesystem
                 String fileName = file.getOriginalFilename();
                 Path fileStorageLocation = Paths.get("C:/uploads").toAbsolutePath().normalize();
                 Files.createDirectories(fileStorageLocation);
@@ -194,18 +284,32 @@ public class TaskController {
             }
         }
         //
-        taskRepository.save(task);
+        if(!oldStatus.equals(updatedTask.getStatus())) {
+            events.publishEvent(new TaskStatusChangedEvent(task.getId(), oldStatus.toString(),
+                    updatedTask.getStatus().toString()));
+        }
+        if(oldUser==null) {
+            events.publishEvent(new TaskAssignedUserChangedEvent(task.getId(), task.getAssignedUser()));
+        }
+        else if (!oldUser.equals(task.getAssignedUser())) {
+                events.publishEvent(new TaskAssignedUserChangedEvent(task.getId(), task.getAssignedUser()));
+        }
+        taskManagementService.save(task);
         if (authentication != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_IT_MANAGER"))) {
             return "redirect:/tasks/manager";
         } else if (authentication != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_IT_TEAM"))) {
             return "redirect:/tasks/team";
+        }
+        else if (authentication != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority(
+                "ROLE_IT_DIRECTOR"))) {
+            return "redirect:/tasks/director";
         }
         return "redirect:/tasks";
     }
 
     @GetMapping("/{id}")
     public String viewTask(@PathVariable("id") Long id, Model model) {
-        Task task = taskService.findById(id);
+        Task task = taskQueryService.findById(id);
         if (task != null) {
             model.addAttribute("task", task);
             return "task-view";
@@ -216,25 +320,24 @@ public class TaskController {
 
     @GetMapping("/edit/{id}")
     public String editTask(@PathVariable("id") Long id, Model model) {
-        Task task = taskService.findById(id);
+        Task task = taskQueryService.findById(id);
         if (task != null) {
             List<User> users = userService.getAllUsers();
-
-
             String formattedDate = task.getDueDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             model.addAttribute("myDate", formattedDate);
-            System.out.println(formattedDate);
 
             model.addAttribute("task", task);
             model.addAttribute("todo", Task.Status.TODO);
             RequestType requestType = RequestType.valueOf(task.getRequestType().toString());
-            List<User> filteredUsers = userService.getFilteredUsers(User.Role.IT_TEAM, requestType);
+            List<User> filteredUsers = userService.getFilteredUsers(User.Role.IT_TEAM, User.Role.IT_MANAGER);
 
             if (filteredUsers.isEmpty()) {
                 System.out.println("No matching users found for task request type: " + task.getRequestType());
             }
 
             model.addAttribute("users", filteredUsers);
+            model.addAttribute("comments", commentRepo.findByTaskIdOrderByCreatedAtAsc(id));
+            model.addAttribute("newComment", new TaskDetailsController.CreateCommentForm());
             return "task-edit";
         } else {
             return "error";
@@ -262,7 +365,7 @@ public class TaskController {
 
     @PostMapping("/send-for-approval/{id}")
     public String sendForApproval(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Task task = taskService.findById(id);
+        Task task = taskQueryService.findById(id);
         if (task == null) {
             redirectAttributes.addFlashAttribute("error", "Task not found.");
             return "redirect:/tasks";
@@ -274,7 +377,7 @@ public class TaskController {
         }
 
         // Update task status or send notification for approval
-        taskService.sendForApproval(task);
+        taskManagementService.sendForApproval(task);
         redirectAttributes.addFlashAttribute("success", "Task sent for approval successfully.");
         return "redirect:/tasks";
     }
@@ -282,7 +385,7 @@ public class TaskController {
     @GetMapping("/delete/{id}")
     public String deleteTask(@PathVariable Long id, RedirectAttributes redirectAttributes, Authentication authentication) {
         try {
-            taskService.deleteTaskById(id);
+            taskManagementService.deleteById(id);
             redirectAttributes.addFlashAttribute("message", "Task deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error deleting task: " + e.getMessage());

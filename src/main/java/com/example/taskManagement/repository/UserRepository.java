@@ -11,8 +11,9 @@ import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-  User findByEmail(String email);
-  @Query("SELECT u FROM User u WHERE u.role = :role AND u.requestType = :requestType")
-  List<User> findUsersByRoleAndRequestType(@Param("role") User.Role role, @Param("requestType") RequestType requestType);
+  User findByEmailIgnoreCase(String email);
+  @Query("SELECT u FROM User u WHERE u.role = :role OR u.role = :role2")
+  List<User> findUsersByRoleAndRequestType(@Param("role") User.Role role, @Param("role2") User.Role role2);
+  boolean existsByEmailIgnoreCase(String email);
 
 }

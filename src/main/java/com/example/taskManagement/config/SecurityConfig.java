@@ -1,9 +1,11 @@
 package com.example.taskManagement.config;
 
 import com.example.taskManagement.service.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,13 +24,26 @@ public class SecurityConfig {
     private CustomUserDetailsService userDetailsService;
 
     @Bean
+    public DaoAuthenticationProvider authProvider(PasswordEncoder encoder) {
+        DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+        p.setUserDetailsService(userDetailsService);
+        p.setPasswordEncoder(encoder);
+        p.setHideUserNotFoundExceptions(false);
+        return p;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/upload-users").permitAll()
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()  // Updated to requestMatchers
+                        .requestMatchers("/Rotation/rotation/**").permitAll()
                         .requestMatchers("/tasks/manager").hasRole("IT_MANAGER")  // Only IT_MANAGER can access
                         .requestMatchers("/tasks").hasRole("USER")
-                        .anyRequest().authenticated()  // All other requests need authentication
+                        .requestMatchers("/change-requests/*/submit").hasAnyRole("IT_TEAM","IT_MANAGER")
+                        .requestMatchers("/change-requests/*/review", "/change-requests/*/approve", "/change-requests/*/decline").hasRole("IT_DIRECTOR")
+                        .anyRequest().authenticated() // All other requests need authentication
                 )
                 .formLogin((form) -> form
                         .loginPage("/login")
@@ -36,10 +51,10 @@ public class SecurityConfig {
                         .permitAll()  // Allow everyone to access the login page
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")                                  // URL to trigger logout
-                        .logoutSuccessUrl("/login?logout")                    // Redirect after successful logout
-                        .invalidateHttpSession(true)                          // Invalidate the session
-                        .deleteCookies("JSESSIONID")                          // Delete session cookie
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 );
         return http.build();

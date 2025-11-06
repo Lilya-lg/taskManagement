@@ -5,18 +5,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.access.prepost.PreAuthorize;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
+
 
 @Entity
-@Table(name = "tasks")  // Mapping to the 'tasks' table
+@Table(name = "tasks")
 @Data
 public class Task {
 
@@ -25,21 +24,20 @@ public class Task {
     private Long id;
 
     @NotNull(message = "Title cannot be null")
-    @Size(min = 1, max = 255, message = "Title must be between 1 and 255 characters")
     @Column(nullable = false)
     private String title;
 
     @NotNull(message = "Description cannot be null")
-    @Column(nullable = false, columnDefinition = "TEXT")  // To allow longer descriptions
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "history", columnDefinition = "TEXT") // Store JSON as text
-    private String history; // JSON-formatted history
+    @Column(name = "history", columnDefinition = "TEXT")
+    private String history;
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Status cannot be null")
     @Column(nullable = false)
-    private Status status;
+    private Status status = Status.TODO;
 
     @Enumerated(EnumType.STRING)
     @Column
@@ -48,11 +46,18 @@ public class Task {
     @Column(name = "needApproval")
     private Boolean needApproval;
 
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt ASC")
+    private java.util.List<TaskComment> comments = new java.util.ArrayList<>();
+
     @Column(name = "approved")
     private Boolean approved;
 
+    @Column(unique = true)
+    private String externalId;
+
     public enum Status {
-        TODO, IN_PROGRESS, COMPLETED
+        TODO, IN_PROGRESS, COMPLETED, DELETED
     }
 
     public enum Priority {
@@ -69,15 +74,14 @@ public class Task {
     @JoinColumn(name = "assigned_user_id", referencedColumnName = "id", nullable = true)
     private User assignedUser;
 
-    // Requester field (the current logged-in user who creates the task)
     @ManyToOne
     @JoinColumn(name = "requester_id")
-    private User requester;  // This will automatically store the current logged-in user
+    private User requester;
 
     @Column(name = "file_name", length = 255)
-    private String fileName;  // Store the file name
-    @Column(name = "file_path", length = 255)  // Explicitly set file path column
-    private String filePath;  // Store the file path
+    private String fileName;
+    @Column(name = "file_path", length = 255)
+    private String filePath;
 
     @Enumerated(EnumType.STRING)
     private RequestType requestType;

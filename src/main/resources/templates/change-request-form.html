@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      lang="en">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Add User</title>
+    <title>New Change Request</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <meta charset="UTF-8">
 </head>
 <body>
 <div class="container">
+    <!-- Optional sidebar/header like your other pages -->
     <div class="logout-form" sec:authorize="isAuthenticated()">
         <form th:action="@{/logout}" method="post">
             <button type="submit">Logout</button>
@@ -44,6 +44,7 @@
             <svg class="i" viewBox="0 0 24 24"><path d="M12 6a3 3 0 1 1 3 3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
             <span>All Tasks</span>
         </a>
+
         <a class="sb-link" th:href="@{/change-requests}"
            th:classappend="${page}=='changes' ? ' active' : ''">
             <svg class="i" viewBox="0 0 24 24"><path d="M4 4h10v6H4M4 14h16v6H4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -63,68 +64,103 @@
         </a>
     </aside>
 
+
     <div class="main-content">
         <header>
-            <h1>Add New User</h1>
+            <h1>Create Change Request</h1>
         </header>
 
-        <!-- User form container -->
-        <div class="form-container">
-            <form th:action="@{/users/new}" method="post" th:object="${user}">
-                <!-- First Name -->
+        <!-- flash -->
+        <div th:if="${message}" class="alert success" th:text="${message}"></div>
+        <div th:if="${error}" class="alert error" th:text="${error}"></div>
+
+        <div class="form-card">
+            <form th:action="@{/change-requests/new}" th:object="${cr}" method="post">
+                <!-- Title -->
                 <div class="form-row">
-                    <label for="firstName">First Name:</label>
-                    <input type="text" id="firstName" th:field="*{firstName}" required />
-                    <span th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}">Error</span>
+                    <label for="title">Title</label>
+                    <input id="title" th:field="*{title}" type="text" required maxlength="255">
+                    <span th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
                 </div>
 
-                <!-- Last Name -->
+                <!-- Description -->
                 <div class="form-row">
-                    <label for="lastName">Last Name:</label>
-                    <input type="text" id="lastName" th:field="*{lastName}" required />
-                    <span th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}">Error</span>
+                    <label for="description">Description</label>
+                    <textarea id="description" th:field="*{description}" rows="4" required></textarea>
+                    <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
                 </div>
 
-                <!-- Email -->
+                <!-- Impact Analysis -->
                 <div class="form-row">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" th:field="*{email}" required />
-                    <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</span>
+                    <label for="impactAnalysis">Impact Analysis</label>
+                    <textarea id="impactAnalysis" th:field="*{impactAnalysis}" rows="3"></textarea>
                 </div>
 
-                <!-- Password -->
+                <!-- Risk -->
                 <div class="form-row">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" th:field="*{password}" required />
-                    <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Error</span>
+                    <label for="risk">Risk</label>
+                    <textarea id="risk" th:field="*{risk}" rows="3"></textarea>
                 </div>
 
-                <!-- Request Type -->
+                <!-- Affected item -->
                 <div class="form-row">
-                    <label for="requestType">Request Type:</label>
-                    <select id="requestType" th:field="*{requestType}">
-                        <option value="INFRA">INFRA</option>
-                        <option value="PROD_APPS">Prod Apps</option>
-                        <option value="BUSINESS_APPS">Business Apps</option>
+                    <label for="affectedItem">Affected conf. item</label>
+                    <textarea id="affectedItem" th:field="*{affectedItem}" rows="3"></textarea>
+                </div>
+
+                <!-- Change reason -->
+                <div class="form-row">
+                    <label for="changeReason">Change reason</label>
+                    <textarea id="changeReason" th:field="*{changeReason}" rows="3"></textarea>
+                </div>
+
+                <!-- Backout Plan -->
+                <div class="form-row">
+                    <label for="backoutPlan">Backout Plan</label>
+                    <textarea id="backoutPlan" th:field="*{backoutPlan}" rows="3"></textarea>
+                </div>
+
+                <!-- Verification Plan -->
+                <div class="form-row">
+                    <label for="verificationPlan">Verification Plan</label>
+                    <textarea id="verificationPlan" th:field="*{verificationPlan}" rows="3"></textarea>
+                </div>
+
+                <!-- Status (read-only: DRAFT) -->
+                <div class="form-row">
+                    <label for="status">Status</label>
+                    <select id="status" th:field="*{status}" disabled>
+                        <option th:each="s : ${T(com.example.taskManagement.entity.ChangeRequest.Status).values()}"
+                                th:value="${s}" th:text="${s}"></option>
                     </select>
+                    <!-- keep value submitted -->
+                    <input type="hidden" th:field="*{status}">
                 </div>
 
-                <!-- Role -->
+                <!-- Link to Task -->
                 <div class="form-row">
-                    <label for="role">Role:</label>
-                    <select id="role" th:field="*{role}">
-                        <option value="USER">User</option>
-                        <option value="IT_TEAM">IT Team</option>
-                        <option value="IT_MANAGER">IT Manager</option>
-                        <option value="IT_DIRECTOR">IT Director</option>
-                        <option value="ADMIN">Admin</option>
-                    </select>
-                    <span th:if="${#fields.hasErrors('role')}" th:errors="*{role}">Error</span>
+                    <label for="taskId">Related Task</label>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <select id="taskId" name="taskId">
+                            <option value="">None</option>
+                            <option th:each="t : ${tasks}" th:value="${t.id}"
+                                    th:text="${t.title + ' [' + t.status + ']'}"></option>
+                        </select>
+
+                        <label style="display:inline-flex; align-items:center; gap:6px;">
+                            <input id="noTask" type="checkbox" onchange="
+        const s = document.getElementById('taskId');
+        if(this.checked){ s.value=''; s.disabled=true; } else { s.disabled=false; }
+      ">
+                            No related task
+                        </label>
+                    </div>
+                    <small class="muted">You can link a task later.</small>
                 </div>
 
-                <!-- Submit button -->
-                <div class="form-row">
-                    <button type="submit">Add User</button>
+                <div class="action-buttons">
+                    <button type="submit" class="btn">Create</button>
+                    <a th:href="@{/change-requests}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
         </div>
